@@ -1,0 +1,442 @@
+// ============ proto/product/product.proto ============
+syntax = "proto3";
+
+package product;
+option go_package = "github.com/youruser/microservices/proto/product";
+
+import "google/protobuf/empty.proto";
+import "google/protobuf/timestamp.proto";
+
+// ============ Enums ============
+
+// ProductStatus represents the status of a product
+enum ProductStatus {
+  STATUS_UNKNOWN = 0;
+  STATUS_ACTIVE = 1;
+  STATUS_INACTIVE = 2;
+  STATUS_DRAFT = 3;
+  STATUS_ARCHIVED = 4;
+  STATUS_DISCONTINUED = 5;
+}
+
+// ProductCategory represents product categories
+enum ProductCategory {
+  CATEGORY_UNKNOWN = 0;
+  CATEGORY_ELECTRONICS = 1;
+  CATEGORY_CLOTHING = 2;
+  CATEGORY_BOOKS = 3;
+  CATEGORY_HOME_GARDEN = 4;
+  CATEGORY_SPORTS = 5;
+  CATEGORY_TOYS = 6;
+  CATEGORY_FOOD_BEVERAGE = 7;
+  CATEGORY_HEALTH_BEAUTY = 8;
+  CATEGORY_AUTOMOTIVE = 9;
+}
+
+// ============ Messages ============
+
+// Product represents a product in the inventory
+message Product {
+  int32 id = 1;
+  string name = 2;
+  string description = 3;
+  string sku = 4; // Stock Keeping Unit
+  ProductCategory category = 5;
+  ProductStatus status = 6;
+
+  // Pricing
+  double price = 7;
+  double cost_price = 8;
+  double discount_percentage = 9;
+  double final_price = 10;
+  string currency = 11; // USD, EUR, GBP, etc
+
+  // Inventory
+  int32 stock_quantity = 12;
+  int32 low_stock_threshold = 13;
+  int32 reorder_quantity = 14;
+
+  // Images
+  repeated string image_urls = 15;
+  string thumbnail_url = 16;
+
+  // Metadata
+  repeated Tag tags = 17;
+  repeated string keywords = 18;
+  string manufacturer = 19;
+  string brand = 20;
+  string model = 21;
+  string color = 22;
+  string size = 23;
+  string weight = 24; // in kg
+  string dimensions = 25; // length x width x height
+
+  // Ratings & Reviews
+  double average_rating = 26;
+  int32 review_count = 27;
+  int32 sold_count = 28;
+
+  // Compliance & Legal
+  string barcode = 29;
+  string warranty_months = 30;
+  string origin_country = 31;
+  repeated Certification certifications = 32;
+
+  // Timestamps
+  google.protobuf.Timestamp created_at = 33;
+  google.protobuf.Timestamp updated_at = 34;
+  google.protobuf.Timestamp deleted_at = 35;
+
+  // SEO
+  string meta_title = 36;
+  string meta_description = 37;
+  string slug = 38;
+
+  // Vendor/Supplier info
+  int32 vendor_id = 39;
+  string vendor_name = 40;
+
+  // Shipping
+  bool is_shippable = 41;
+  double shipping_weight = 42;
+  double shipping_length = 43;
+  double shipping_width = 44;
+  double shipping_height = 45;
+}
+
+// Tag represents a product tag
+message Tag {
+  int32 id = 1;
+  string name = 2;
+  string slug = 3;
+}
+
+// Certification represents product certification
+message Certification {
+  string name = 1;
+  string issuer = 2;
+  string certificate_number = 3;
+  google.protobuf.Timestamp expiry_date = 4;
+}
+
+// CreateProductRequest for creating a new product
+message CreateProductRequest {
+  string name = 1;
+  string description = 2;
+  string sku = 3;
+  ProductCategory category = 4;
+
+  // Pricing
+  double price = 5;
+  double cost_price = 6;
+  double discount_percentage = 7;
+  string currency = 8;
+
+  // Inventory
+  int32 stock_quantity = 9;
+  int32 low_stock_threshold = 10;
+  int32 reorder_quantity = 11;
+
+  // Media
+  repeated string image_urls = 12;
+  string thumbnail_url = 13;
+
+  // Metadata
+  repeated string tags = 14;
+  repeated string keywords = 15;
+  string manufacturer = 16;
+  string brand = 17;
+  string model = 18;
+  string color = 19;
+  string size = 20;
+  string weight = 21;
+  string dimensions = 22;
+
+  // Compliance
+  string barcode = 23;
+  string warranty_months = 24;
+  string origin_country = 25;
+
+  // SEO
+  string meta_title = 26;
+  string meta_description = 27;
+  string slug = 28;
+
+  // Vendor
+  int32 vendor_id = 29;
+
+  // Shipping
+  bool is_shippable = 30;
+  double shipping_weight = 31;
+  double shipping_length = 32;
+  double shipping_width = 33;
+  double shipping_height = 34;
+}
+
+// CreateProductResponse for successful product creation
+message CreateProductResponse {
+  int32 product_id = 1;
+  string message = 2;
+  google.protobuf.Timestamp created_at = 3;
+}
+
+// UpdateProductRequest for updating product details
+message UpdateProductRequest {
+  int32 product_id = 1;
+
+  optional string name = 2;
+  optional string description = 3;
+  optional ProductCategory category = 4;
+
+  optional double price = 5;
+  optional double cost_price = 6;
+  optional double discount_percentage = 7;
+
+  optional int32 stock_quantity = 8;
+  optional int32 low_stock_threshold = 9;
+  optional int32 reorder_quantity = 10;
+
+  optional string brand = 11;
+  optional string color = 12;
+  optional string size = 13;
+
+  optional ProductStatus status = 14;
+
+  optional string meta_title = 15;
+  optional string meta_description = 16;
+}
+
+// UpdateProductResponse for successful product update
+message UpdateProductResponse {
+  int32 product_id = 1;
+  string message = 2;
+  google.protobuf.Timestamp updated_at = 3;
+}
+
+// GetProductRequest to retrieve a single product
+message GetProductRequest {
+  int32 product_id = 1;
+}
+
+// DeleteProductRequest to delete a product
+message DeleteProductRequest {
+  int32 product_id = 1;
+  bool soft_delete = 2; // soft delete or hard delete
+}
+
+// ListProductsRequest to list products with filtering
+message ListProductsRequest {
+  int32 page = 1;
+  int32 page_size = 2;
+  string search_query = 3;
+  ProductCategory category = 4;
+  ProductStatus status = 5;
+  double min_price = 6;
+  double max_price = 7;
+  string sort_by = 8; // price, popularity, rating, newest
+  string sort_order = 9; // asc, desc
+  bool in_stock_only = 10;
+  int32 vendor_id = 11;
+  repeated string tags = 12;
+}
+
+// ProductListItem represents a product in list response
+message ProductListItem {
+  int32 id = 1;
+  string name = 2;
+  string description = 3;
+  double price = 4;
+  double discount_percentage = 5;
+  double final_price = 6;
+  string thumbnail_url = 7;
+  double average_rating = 8;
+  int32 review_count = 9;
+  bool in_stock = 10;
+  int32 stock_quantity = 11;
+  string brand = 12;
+  string category = 13;
+}
+
+// ListProductsResponse contains paginated product list
+message ListProductsResponse {
+  repeated ProductListItem products = 1;
+  int32 total_count = 2;
+  int32 page = 3;
+  int32 page_size = 4;
+  int32 total_pages = 5;
+}
+
+// BulkProductRequest for bulk operations
+message BulkProductRequest {
+  repeated int32 product_ids = 1;
+  optional ProductStatus new_status = 2;
+  optional double discount_percentage = 3;
+}
+
+// BulkProductResponse for bulk operation results
+message BulkProductResponse {
+  int32 affected_count = 1;
+  string message = 2;
+  repeated int32 failed_ids = 3;
+}
+
+// UpdateStockRequest to update product stock
+message UpdateStockRequest {
+  int32 product_id = 1;
+  int32 quantity_change = 2; // positive or negative number
+  string reason = 3; // sold, returned, damaged, restocked, etc
+}
+
+// UpdateStockResponse confirms stock update
+message UpdateStockResponse {
+  int32 product_id = 1;
+  int32 new_stock_quantity = 2;
+  int32 reserved_quantity = 3;
+  int32 available_quantity = 4;
+  string message = 5;
+}
+
+// StockMovement tracks stock changes
+message StockMovement {
+  int32 id = 1;
+  int32 product_id = 2;
+  int32 quantity_change = 3;
+  int32 stock_before = 4;
+  int32 stock_after = 5;
+  string reason = 6;
+  int32 user_id = 7;
+  google.protobuf.Timestamp created_at = 8;
+}
+
+// GetStockMovementRequest to retrieve stock history
+message GetStockMovementRequest {
+  int32 product_id = 1;
+  int32 page = 2;
+  int32 page_size = 3;
+  int32 days = 4; // last N days
+}
+
+// StockMovementListResponse contains stock movements
+message StockMovementListResponse {
+  repeated StockMovement movements = 1;
+  int32 total_count = 2;
+  int32 page = 3;
+  int32 page_size = 4;
+}
+
+// ProductAnalytics for product performance data
+message ProductAnalytics {
+  int32 product_id = 1;
+  int32 views_count = 2;
+  int32 clicks_count = 3;
+  int32 purchases_count = 4;
+  double conversion_rate = 5;
+  int32 wishlist_count = 6;
+  int32 reviews_count = 7;
+  double average_rating = 8;
+  int32 returns_count = 9;
+  double return_rate = 10;
+  google.protobuf.Timestamp period_start = 11;
+  google.protobuf.Timestamp period_end = 12;
+}
+
+// GetProductAnalyticsRequest for analytics data
+message GetProductAnalyticsRequest {
+  int32 product_id = 1;
+  int32 days = 2; // last N days
+}
+
+// CategoryStatsRequest to get category statistics
+message CategoryStatsRequest {
+  ProductCategory category = 1;
+}
+
+// CategoryStats contains category statistics
+message CategoryStats {
+  ProductCategory category = 1;
+  int32 total_products = 2;
+  int32 active_products = 3;
+  int32 out_of_stock_products = 4;
+  double average_price = 5;
+  int32 total_inventory = 6;
+  int32 total_sales = 7;
+}
+
+// InventoryAlertRequest for low stock alerts
+message InventoryAlertRequest {
+  int32 page = 1;
+  int32 page_size = 2;
+}
+
+// InventoryAlert represents low stock items
+message InventoryAlert {
+  int32 product_id = 1;
+  string product_name = 2;
+  string sku = 3;
+  int32 current_stock = 4;
+  int32 low_stock_threshold = 5;
+  int32 reorder_quantity = 6;
+  string brand = 7;
+}
+
+// InventoryAlertResponse contains low stock alerts
+message InventoryAlertResponse {
+  repeated InventoryAlert alerts = 1;
+  int32 total_count = 2;
+  int32 page = 3;
+  int32 page_size = 4;
+}
+
+// ExportProductsRequest for data export
+message ExportProductsRequest {
+  string format = 1; // csv, json, excel
+  ProductStatus status = 2;
+  ProductCategory category = 3;
+  repeated int32 product_ids = 4;
+}
+
+// ExportProductsResponse with download link
+message ExportProductsResponse {
+  string download_url = 1;
+  string file_name = 2;
+  int32 total_records = 3;
+  string message = 4;
+}
+
+// ============ Service Definition ============
+
+service ProductService {
+  // CRUD Operations
+  rpc CreateProduct(CreateProductRequest) returns (CreateProductResponse);
+  rpc GetProduct(GetProductRequest) returns (Product);
+  rpc UpdateProduct(UpdateProductRequest) returns (UpdateProductResponse);
+  rpc DeleteProduct(DeleteProductRequest) returns (google.protobuf.Empty);
+  rpc ListProducts(ListProductsRequest) returns (ListProductsResponse);
+
+  // Stock Management
+  rpc UpdateStock(UpdateStockRequest) returns (UpdateStockResponse);
+  rpc GetStockMovement(GetStockMovementRequest) returns (StockMovementListResponse);
+  rpc GetInventoryAlerts(InventoryAlertRequest) returns (InventoryAlertResponse);
+
+  // Bulk Operations
+  rpc BulkUpdateProducts(BulkProductRequest) returns (BulkProductResponse);
+  rpc BulkUpdateStock(BulkProductRequest) returns (BulkProductResponse);
+
+  // Analytics & Reporting
+  rpc GetProductAnalytics(GetProductAnalyticsRequest) returns (ProductAnalytics);
+  rpc GetCategoryStats(CategoryStatsRequest) returns (CategoryStats);
+  rpc ExportProducts(ExportProductsRequest) returns (ExportProductsResponse);
+
+  // Search & Discovery
+  rpc SearchProducts(ListProductsRequest) returns (ListProductsResponse);
+  rpc GetRelatedProducts(GetProductRequest) returns (ListProductsResponse);
+  rpc GetProductsByCategory(ListProductsRequest) returns (ListProductsResponse);
+
+  // Health Check
+  rpc HealthCheck(google.protobuf.Empty) returns (google.protobuf.Empty);
+}
+
+// ============ Generate Go Code ============
+// protoc --go_out=. --go_opt=paths=source_relative \
+//        --go-grpc_out=. --go-grpc_opt=paths=source_relative \
+//        proto/product/product.proto

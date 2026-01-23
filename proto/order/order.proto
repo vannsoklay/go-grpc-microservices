@@ -1,0 +1,151 @@
+syntax = "proto3";
+
+package order;
+option go_package = "proto/orderpb;orderpb";
+
+import "google/protobuf/empty.proto";
+import "google/protobuf/timestamp.proto";
+
+// ============ Messages ============
+
+message OrderItem {
+  int32 product_id = 1;
+  string product_name = 2;
+  int32 quantity = 3;
+  double unit_price = 4;
+  double subtotal = 5;
+}
+
+message Order {
+  int32 id = 1;
+  int32 user_id = 2;
+  repeated OrderItem items = 3;
+  double total_amount = 4;
+  double tax = 5;
+  double discount = 6;
+  string status = 7; // pending, confirmed, shipped, delivered, cancelled
+  string payment_method = 8;
+  string shipping_address = 9;
+  google.protobuf.Timestamp created_at = 10;
+  google.protobuf.Timestamp updated_at = 11;
+}
+
+message CreateOrderRequest {
+  int32 user_id = 1;
+  repeated OrderItem items = 2;
+  double discount = 3;
+  string payment_method = 4;
+  string shipping_address = 5;
+}
+
+message CreateOrderResponse {
+  int32 order_id = 1;
+  int32 user_id = 2;
+  double total_amount = 3;
+  double tax = 4;
+  string status = 5;
+  string message = 6;
+}
+
+message GetOrderRequest {
+  int32 order_id = 1;
+}
+
+message GetOrderResponse {
+  int32 id = 1;
+  int32 user_id = 2;
+  repeated OrderItem items = 3;
+  double total_amount = 4;
+  double tax = 5;
+  double discount = 6;
+  string status = 7;
+  string payment_method = 8;
+  string shipping_address = 9;
+  google.protobuf.Timestamp created_at = 10;
+  google.protobuf.Timestamp updated_at = 11;
+}
+
+message ListOrdersRequest {
+  int32 user_id = 1;
+  int32 page = 2;
+  int32 page_size = 3;
+  string status_filter = 4; // optional: filter by status
+}
+
+message ListOrdersResponse {
+  repeated Order orders = 1;
+  int32 total_count = 2;
+  int32 page = 3;
+  int32 page_size = 4;
+}
+
+message UpdateOrderStatusRequest {
+  int32 order_id = 1;
+  string new_status = 2; // confirmed, shipped, delivered, cancelled
+  string reason = 3; // optional: reason for status change
+}
+
+message UpdateOrderStatusResponse {
+  int32 order_id = 1;
+  string status = 2;
+  string message = 3;
+  google.protobuf.Timestamp updated_at = 4;
+}
+
+message CancelOrderRequest {
+  int32 order_id = 1;
+  string reason = 2;
+}
+
+message CancelOrderResponse {
+  int32 order_id = 1;
+  string status = 2;
+  string message = 3;
+}
+
+message CalculateTaxRequest {
+  double subtotal = 1;
+  string country = 2;
+  string state = 3;
+}
+
+message CalculateTaxResponse {
+  double tax_amount = 1;
+  double tax_rate = 2;
+  string tax_type = 3;
+}
+
+message TrackOrderRequest {
+  int32 order_id = 1;
+}
+
+message TrackOrderResponse {
+  int32 order_id = 1;
+  string current_status = 2;
+  string location = 3;
+  string estimated_delivery = 4;
+  repeated TrackingEvent events = 5;
+}
+
+message TrackingEvent {
+  string status = 1;
+  string description = 2;
+  google.protobuf.Timestamp timestamp = 3;
+  string location = 4;
+}
+
+// ============ Service Definition ============
+
+service OrderService {
+  rpc CreateOrder(CreateOrderRequest) returns (CreateOrderResponse);
+  rpc GetOrder(GetOrderRequest) returns (GetOrderResponse);
+  rpc ListOrders(ListOrdersRequest) returns (ListOrdersResponse);
+  rpc UpdateOrderStatus(UpdateOrderStatusRequest) returns (UpdateOrderStatusResponse);
+  rpc CancelOrder(CancelOrderRequest) returns (CancelOrderResponse);
+  rpc CalculateTax(CalculateTaxRequest) returns (CalculateTaxResponse);
+  rpc TrackOrder(TrackOrderRequest) returns (TrackOrderResponse);
+  rpc DeleteOrder(GetOrderRequest) returns (google.protobuf.Empty);
+}
+
+// ============ Generate Go Code ============
+// protoc --go_out=. --go_opt=paths=source_relative --go-grpc_out=. --go-grpc_opt=paths=source_relative order.proto

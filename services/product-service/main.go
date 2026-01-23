@@ -1,0 +1,39 @@
+package main
+
+import (
+	"hpkg/db"
+	"hpkg/grpc/interceptor"
+	"log"
+	"log/slog"
+	"net"
+	"os"
+
+	productpb "productservice/proto/productpb"
+	"productservice/repository"
+	service "productservice/service"
+
+	"google.golang.org/grpc"
+)
+
+func main() {
+	lis, err := net.Listen("tcp", ":50051")
+	if err != nil {
+		log.Fatalf("failed to listen: %v", err)
+	}
+
+	db := db.ConnectPostgreSQLDB()
+	defer db.Close()
+
+	logger := slog.New(slog.NewJSONHandler(os.Stderr, nil))
+
+	repo := *repository.NewPostgresProductRepository(db, logger)
+	productServer := service.NewProductService(repo)
+
+	grpcServer := grpc.NewServer(grpc.ChainUnaryInterceptor(interceptor.AuthUnaryServerInterceptor(), interceptor.ShopUnaryServerInterceptor(), interceptor.ErrorUnaryInterceptor()))
+	productpb.RegisterProductServiceServer(grpcServer, productServer)
+
+	log.Println("Product service listening on :50051")
+	if err := grpcServer.Serve(lis); err != nil {
+		log.Fatalf("failed to serve: %v", err)
+	}
+}

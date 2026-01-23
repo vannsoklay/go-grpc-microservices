@@ -1,0 +1,70 @@
+syntax = "proto3";
+
+package auth;
+option go_package = "proto/authpb;authpb";
+
+import "google/protobuf/timestamp.proto";
+
+enum Status {
+  STATUS_UNSPECIFIED = 0;
+  ACTIVE = 1;
+  SUSPENDED = 2;
+  DELETED = 3;
+}
+
+message User {
+  string name = 1;
+  string username = 2;
+  string email = 3;
+  optional string bio = 4;
+  optional string twofa_secret = 5;
+  bool twofa_enabled = 6;
+  bool is_verified = 7;
+  optional string last_login = 8;
+  optional string avatar_url = 9;
+  Status status = 10;
+  optional google.protobuf.Timestamp created_at = 11;
+  optional google.protobuf.Timestamp updated_at = 12;
+  optional google.protobuf.Timestamp deleted_at = 13;
+}
+
+message RegisterReq {
+  string name = 1;
+  string username = 2;
+  string email = 3;
+  string password = 4;
+}
+
+message LoginReq {
+  optional string email = 1;
+  optional string phone = 2;
+  string password = 3;
+}
+
+message LoginResp {
+  string access_token = 1;
+  string refresh_token = 2;
+  User user = 3;
+}
+
+message RegsiterResp {
+  string access_token = 1;
+  string refresh_token = 2;
+  User user = 3;
+}
+
+message TokenReq {
+  string token = 1;
+}
+
+message ValidateTokenResp {
+  string user_id = 1;
+  string role = 3;
+  repeated string permissions = 4;
+}
+
+service AuthService {
+  rpc Register(RegisterReq) returns (RegsiterResp);
+  rpc Login(LoginReq) returns (LoginResp);
+  rpc Validate(TokenReq) returns (ValidateTokenResp);
+}
