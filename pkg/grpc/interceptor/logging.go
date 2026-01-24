@@ -8,6 +8,14 @@ import (
 	"google.golang.org/grpc"
 )
 
+// Logger interface for dependency injection
+type Logger interface {
+	Debug(msg string, args ...interface{})
+	Info(msg string, args ...interface{})
+	Warn(msg string, args ...interface{})
+	Error(msg string, args ...interface{})
+}
+
 func LoggingUnaryInterceptor() grpc.UnaryServerInterceptor {
 	return func(
 		ctx context.Context,

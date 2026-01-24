@@ -31,7 +31,7 @@ func main() {
 	logger := slog.New(slog.NewJSONHandler(os.Stderr, nil))
 
 	// reate ONE grpc server
-	grpcServer := grpc.NewServer(grpc.UnaryInterceptor(interceptor.AuthUnaryServerInterceptor()))
+	grpcServer := grpc.NewServer(grpc.ChainUnaryInterceptor(interceptor.UserUnaryServerInterceptor(logger), interceptor.ErrorUnaryInterceptor()))
 
 	// dependencies
 	repo := persistence.NewPostgresShopRepository(db, logger)

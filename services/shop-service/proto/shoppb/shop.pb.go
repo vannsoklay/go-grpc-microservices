@@ -144,6 +144,7 @@ func (x *CreateShopResponse) GetCreatedAt() *timestamppb.Timestamp {
 
 type GetMyShopRequest struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
+	ShopId        string                 `protobuf:"bytes,1,opt,name=shop_id,json=shopId,proto3" json:"shop_id,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -176,6 +177,13 @@ func (x *GetMyShopRequest) ProtoReflect() protoreflect.Message {
 // Deprecated: Use GetMyShopRequest.ProtoReflect.Descriptor instead.
 func (*GetMyShopRequest) Descriptor() ([]byte, []int) {
 	return file_shop_shop_proto_rawDescGZIP(), []int{2}
+}
+
+func (x *GetMyShopRequest) GetShopId() string {
+	if x != nil {
+		return x.ShopId
+	}
+	return ""
 }
 
 type UpdateShopRequest struct {
@@ -447,8 +455,9 @@ const file_shop_shop_proto_rawDesc = "" +
 	"\x12CreateShopResponse\x12\x17\n" +
 	"\ashop_id\x18\x01 \x01(\tR\x06shopId\x129\n" +
 	"\n" +
-	"created_at\x18\x02 \x01(\v2\x1a.google.protobuf.TimestampR\tcreatedAt\"\x12\n" +
-	"\x10GetMyShopRequest\"z\n" +
+	"created_at\x18\x02 \x01(\v2\x1a.google.protobuf.TimestampR\tcreatedAt\"+\n" +
+	"\x10GetMyShopRequest\x12\x17\n" +
+	"\ashop_id\x18\x01 \x01(\tR\x06shopId\"z\n" +
 	"\x11UpdateShopRequest\x12\x12\n" +
 	"\x04name\x18\x01 \x01(\tR\x04name\x12 \n" +
 	"\vdescription\x18\x02 \x01(\tR\vdescription\x12\x12\n" +

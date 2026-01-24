@@ -60,6 +60,7 @@ func RegisterShopRoutes(
 ) {
 	h := handler.NewShopHandler(clients)
 	authCache := cache.NewAuthCache(redisCache, 10*time.Minute)
+	shopCache := cache.NewShopCache(redisCache, 10*time.Minute)
 
 	shops := app.Group("/api/shops")
 
@@ -79,7 +80,8 @@ func RegisterShopRoutes(
 	// Get my shop
 	shops.Get(
 		"/me",
-		// mdw.AuthMiddleware(auth, authCache),
+		mdw.AuthMiddleware(clients, authCache),
+		mdw.ShopMiddleware(clients.Shop, shopCache),
 		mdw.PermissionMiddleware("shop:read"),
 		h.GetMyShop,
 	)
@@ -88,6 +90,7 @@ func RegisterShopRoutes(
 	shops.Put(
 		"/me",
 		mdw.AuthMiddleware(clients, authCache),
+		mdw.ShopMiddleware(clients.Shop, shopCache),
 		mdw.PermissionMiddleware("shop:update"),
 		h.UpdateShop,
 	)
@@ -96,6 +99,7 @@ func RegisterShopRoutes(
 	shops.Delete(
 		"/me",
 		mdw.AuthMiddleware(clients, authCache),
+		mdw.ShopMiddleware(clients.Shop, shopCache),
 		mdw.PermissionMiddleware("shop:delete"),
 		h.DeleteShop,
 	)

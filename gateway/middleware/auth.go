@@ -3,7 +3,6 @@ package middleware
 import (
 	"authservice/proto/authpb"
 	"context"
-	"fmt"
 	"strings"
 	"time"
 
@@ -11,10 +10,9 @@ import (
 	"gateway/grpc"
 
 	errors "hpkg/constants/responses"
+	ctxkey "hpkg/grpc"
 
 	"github.com/gofiber/fiber/v3"
-
-	grpcintcp "hpkg/grpc/interceptor"
 )
 
 func AuthMiddleware(client *grpc.GRPCClients, authCache *cache.AuthCache) fiber.Handler {
@@ -44,7 +42,6 @@ func AuthMiddleware(client *grpc.GRPCClients, authCache *cache.AuthCache) fiber.
 				Token: token,
 			})
 
-			fmt.Printf("err %v", err)
 			if err != nil {
 				return errors.Error(c, fiber.StatusUnauthorized, errors.ErrTokenExpiredCode)
 			}
@@ -58,10 +55,8 @@ func AuthMiddleware(client *grpc.GRPCClients, authCache *cache.AuthCache) fiber.
 			_ = authCache.SetAuth(ctx, token, authResp, 10*time.Minute)
 		}
 
-		fmt.Printf("authResp %v", authResp)
-
 		// Attach auth to request context for gRPC
-		reqCtx := context.WithValue(context.Background(), grpcintcp.AuthContextKey, authResp)
+		reqCtx := context.WithValue(context.Background(), ctxkey.UserIDKey, authResp)
 
 		// Save context and auth for handler
 		c.Locals("ctx", reqCtx)

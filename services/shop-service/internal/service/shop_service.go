@@ -3,12 +3,14 @@ package service
 import (
 	"context"
 	"database/sql"
+	"fmt"
 	"log/slog"
 	"time"
 
+	reqCtx "hpkg/grpc"
+
 	"github.com/google/uuid"
 	"google.golang.org/grpc/codes"
-	"google.golang.org/grpc/metadata"
 	"google.golang.org/grpc/status"
 	"google.golang.org/protobuf/types/known/timestamppb"
 
@@ -29,24 +31,13 @@ func NewShopService(repo persistence.ShopRepository, logger *slog.Logger) *ShopS
 	}
 }
 
-func MustGetUserID(ctx context.Context) (string, error) {
-	md, ok := metadata.FromIncomingContext(ctx)
-	if !ok {
-		return "", status.Error(codes.Unauthenticated, "missing metadata")
-	}
-	userIDs := md.Get("x-user-id")
-	if len(userIDs) == 0 || userIDs[0] == "" {
-		return "", status.Error(codes.Unauthenticated, "user not authenticated")
-	}
-	return userIDs[0], nil
-}
-
 func (s *ShopService) CreateShop(ctx context.Context, req *shoppb.CreateShopRequest) (*shoppb.CreateShopResponse, error) {
 	if req.Name == "" || req.Slug == "" {
 		return nil, status.Error(codes.InvalidArgument, "name and slug are required")
 	}
 
-	ownerID, err := MustGetUserID(ctx)
+	ownerID, err := reqCtx.MustGetUserID(ctx)
+	fmt.Printf("ownerID %v", ownerID)
 	if err != nil {
 		return nil, err
 	}
@@ -86,13 +77,13 @@ func (s *ShopService) CreateShop(ctx context.Context, req *shoppb.CreateShopRequ
 	}, nil
 }
 
-func (s *ShopService) GetMyShop(ctx context.Context, _ *shoppb.GetMyShopRequest) (*shoppb.ShopResponse, error) {
-	ownerID, err := MustGetUserID(ctx)
-	if err != nil {
-		return nil, err
+func (s *ShopService) GetMyShop(ctx context.Context, req *shoppb.GetMyShopRequest) (*shoppb.ShopResponse, error) {
+	ownerID, userErr := reqCtx.MustGetUserID(ctx)
+	if userErr != nil {
+		return nil, userErr
 	}
 
-	shop, err := s.repo.GetByOwnerID(ctx, ownerID)
+	shop, err := s.repo.GetByOwnerID(ctx, ownerID, req.ShopId)
 	if err != nil {
 		if err == sql.ErrNoRows {
 			return nil, status.Error(codes.NotFound, "shop not found")
@@ -104,7 +95,7 @@ func (s *ShopService) GetMyShop(ctx context.Context, _ *shoppb.GetMyShopRequest)
 }
 
 func (s *ShopService) UpdateShop(ctx context.Context, req *shoppb.UpdateShopRequest) (*shoppb.ShopResponse, error) {
-	ownerID, err := MustGetUserID(ctx)
+	ownerID, err := reqCtx.MustGetUserID(ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -129,7 +120,7 @@ func (s *ShopService) UpdateShop(ctx context.Context, req *shoppb.UpdateShopRequ
 }
 
 func (s *ShopService) DeleteShop(ctx context.Context, _ *shoppb.DeleteShopRequest) (*shoppb.DeleteShopResponse, error) {
-	ownerID, err := MustGetUserID(ctx)
+	ownerID, err := reqCtx.MustGetUserID(ctx)
 	if err != nil {
 		return nil, err
 	}

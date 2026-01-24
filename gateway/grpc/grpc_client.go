@@ -9,7 +9,6 @@ import (
 	"userservice/proto/userpb"
 
 	"gateway/grpc/interceptor"
-	grpcmw "hpkg/grpc/interceptor"
 
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
@@ -36,7 +35,7 @@ func NewGRPCClients() (*GRPCClients, error) {
 
 	// User Service
 	userConn, err := grpc.Dial(":50055", grpc.WithTransportCredentials(insecure.NewCredentials()), grpc.WithUnaryInterceptor(
-		grpcmw.UserMetadataUnaryInterceptor(),
+		interceptor.UserMetadataUnaryInterceptor(),
 	))
 	if err != nil {
 		return nil, fmt.Errorf("failed to connect to auth service: %v", err)
@@ -44,8 +43,9 @@ func NewGRPCClients() (*GRPCClients, error) {
 	clients.User = userpb.NewUserServiceClient(userConn)
 
 	// Shop Service
-	shopConn, err := grpc.Dial(":50058", grpc.WithTransportCredentials(insecure.NewCredentials()), grpc.WithUnaryInterceptor(
-		grpcmw.UserMetadataUnaryInterceptor(),
+	shopConn, err := grpc.Dial(":50058", grpc.WithTransportCredentials(insecure.NewCredentials()), grpc.WithChainUnaryInterceptor(
+		interceptor.UserMetadataUnaryInterceptor(),
+		interceptor.ShopMetadataUnaryClientInterceptor(),
 	))
 	if err != nil {
 		return nil, fmt.Errorf("failed to connect to auth service: %v", err)
@@ -54,7 +54,7 @@ func NewGRPCClients() (*GRPCClients, error) {
 
 	// Product Service
 	productConn, err := grpc.Dial(":50051", grpc.WithTransportCredentials(insecure.NewCredentials()), grpc.WithChainUnaryInterceptor(
-		grpcmw.UserMetadataUnaryInterceptor(),
+		interceptor.UserMetadataUnaryInterceptor(),
 		interceptor.ShopMetadataUnaryClientInterceptor(),
 	))
 
@@ -62,13 +62,6 @@ func NewGRPCClients() (*GRPCClients, error) {
 		return nil, fmt.Errorf("failed to connect to product service: %v", err)
 	}
 	clients.Product = productpb.NewProductServiceClient(productConn)
-
-	// // Order Service
-	// orderConn, err := grpc.Dial(":50052", grpc.WithTransportCredentials(insecure.NewCredentials()))
-	// if err != nil {
-	// 	return nil, fmt.Errorf("failed to connect to order service: %v", err)
-	// }
-	// clients.Order = order.NewOrderServiceClient(orderConn)
 
 	// // Payment Service
 	paymentConn, err := grpc.Dial(":50053", grpc.WithTransportCredentials(insecure.NewCredentials()))

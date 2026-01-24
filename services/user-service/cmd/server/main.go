@@ -2,7 +2,9 @@ package main
 
 import (
 	"log"
+	"log/slog"
 	"net"
+	"os"
 
 	"userservice/internal/handler"
 	"userservice/internal/service"
@@ -25,8 +27,10 @@ func main() {
 	db := db.ConnectPostgreSQLDB()
 	defer db.Close()
 
+	logger := slog.New(slog.NewJSONHandler(os.Stderr, nil))
+
 	// reate ONE grpc server
-	grpcServer := grpc.NewServer(grpc.UnaryInterceptor(interceptor.AuthUnaryServerInterceptor()))
+	grpcServer := grpc.NewServer(grpc.UnaryInterceptor(interceptor.UserUnaryServerInterceptor(logger)))
 
 	// dependencies
 	svc := service.NewUserService(db)

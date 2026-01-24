@@ -10,7 +10,7 @@ import (
 
 type ShopRepository interface {
 	CreateShop(ctx context.Context, shop *dto.ShopDTO) (string, error)
-	GetByOwnerID(ctx context.Context, ownerID string) (*dto.ShopDTO, error)
+	GetByOwnerID(ctx context.Context, ownerID string, shopID string) (*dto.ShopDTO, error)
 	GetBySlug(ctx context.Context, slug string) (bool, error)
 	UpdateShop(ctx context.Context, shop *dto.ShopDTO) (*dto.ShopDTO, error)
 	DeleteByOwnerID(ctx context.Context, ownerID string) (int64, error)
@@ -32,7 +32,7 @@ const (
 	queryShopByOwnerID = `
 		SELECT id, owner_id, name, slug, description, logo, is_active, created_at, updated_at
 		FROM shops
-		WHERE owner_id = $1 AND deleted_at IS NULL
+		WHERE owner_id = $1 AND id = $2 AND deleted_at IS NULL
 	`
 	querySlugExists = `
 		SELECT EXISTS (SELECT 1 FROM shops WHERE slug = $1 AND deleted_at IS NULL)
@@ -73,8 +73,8 @@ func (r *PostgresShopRepository) CreateShop(ctx context.Context, shop *dto.ShopD
 	return shop.ID, nil
 }
 
-func (r *PostgresShopRepository) GetByOwnerID(ctx context.Context, ownerID string) (*dto.ShopDTO, error) {
-	row := r.db.QueryRowContext(ctx, queryShopByOwnerID, ownerID)
+func (r *PostgresShopRepository) GetByOwnerID(ctx context.Context, ownerID string, shopID string) (*dto.ShopDTO, error) {
+	row := r.db.QueryRowContext(ctx, queryShopByOwnerID, ownerID, shopID)
 	shop, err := scanShop(row)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {

@@ -29,7 +29,7 @@ func main() {
 	repo := *repository.NewPostgresProductRepository(db, logger)
 	productServer := service.NewProductService(repo)
 
-	grpcServer := grpc.NewServer(grpc.ChainUnaryInterceptor(interceptor.AuthUnaryServerInterceptor(), interceptor.ShopUnaryServerInterceptor(), interceptor.ErrorUnaryInterceptor()))
+	grpcServer := grpc.NewServer(grpc.ChainUnaryInterceptor(interceptor.UserUnaryServerInterceptor(logger), interceptor.ShopUnaryServerInterceptor(logger), interceptor.ErrorUnaryInterceptor()))
 	productpb.RegisterProductServiceServer(grpcServer, productServer)
 
 	log.Println("Product service listening on :50051")

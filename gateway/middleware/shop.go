@@ -44,7 +44,10 @@ func ShopMiddleware(
 		}
 
 		// --- 5. Validate shop via shop-service ---
-		shopResp, err := shopClient.GetMyShop(ctx, &shoppb.GetMyShopRequest{})
+		shopResp, err := shopClient.GetMyShop(ctx, &shoppb.GetMyShopRequest{
+			ShopId: shopID,
+		})
+
 		if err != nil {
 			return responses.Error(c, fiber.StatusForbidden, responses.ShopAccessDeniedCode, "Cannot access this shop")
 		}

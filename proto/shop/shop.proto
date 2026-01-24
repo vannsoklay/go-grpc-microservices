@@ -25,7 +25,9 @@ message CreateShopResponse {
   google.protobuf.Timestamp created_at = 2;
 }
 
-message GetMyShopRequest {}
+message GetMyShopRequest {
+  string shop_id = 1;
+}
 
 message UpdateShopRequest {
   string name = 1;

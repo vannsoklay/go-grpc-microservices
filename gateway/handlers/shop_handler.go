@@ -7,6 +7,7 @@ import (
 	"shopservice/proto/shoppb"
 
 	"hpkg/constants/responses"
+	pkg "hpkg/grpc"
 
 	"github.com/gofiber/fiber/v3"
 )
@@ -42,13 +43,16 @@ func (h *ShopHandler) CreateShop(c fiber.Ctx) error {
 
 func (h *ShopHandler) GetMyShop(c fiber.Ctx) error {
 	ctx, ok := c.Locals("ctx").(context.Context)
-	auth, authOk := c.Locals("auth").(*cache.AuthResp)
 
-	if !ok || ctx == nil || !authOk || auth == nil {
+	if !ok || ctx == nil {
 		return responses.Error(c, fiber.StatusUnauthorized, responses.ErrUnauthorizedCode)
 	}
 
-	resp, err := h.clients.Shop.GetMyShop(ctx, &shoppb.GetMyShopRequest{})
+	shopID, _ := pkg.MustGetShopID(ctx)
+
+	resp, err := h.clients.Shop.GetMyShop(ctx, &shoppb.GetMyShopRequest{
+		ShopId: shopID,
+	})
 	if err != nil {
 		return responses.FromError(c, err)
 	}
