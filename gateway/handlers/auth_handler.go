@@ -1,17 +1,18 @@
 package handler
 
 import (
-	server "gateway/grpc/server"
+	"authservice/proto/authpb"
+	"gateway/grpc"
 
 	"github.com/gofiber/fiber/v3"
 )
 
 type AuthHandler struct {
-	auth *server.AuthClient
+	clients *grpc.GRPCClients
 }
 
-func NewAuthHandler(a *server.AuthClient) *AuthHandler {
-	return &AuthHandler{auth: a}
+func NewAuthHandler(a *grpc.GRPCClients) *AuthHandler {
+	return &AuthHandler{clients: a}
 }
 
 func (h *AuthHandler) Register(c fiber.Ctx) error {
@@ -26,11 +27,14 @@ func (h *AuthHandler) Register(c fiber.Ctx) error {
 		return fiber.ErrBadRequest
 	}
 
-	resp, err := h.auth.Register(
-		body.Name,
-		body.Username,
-		body.Email,
-		body.Password,
+	resp, err := h.clients.Auth.Register(
+		c.Context(),
+		&authpb.RegisterReq{
+			Name:     body.Name,
+			Username: body.Username,
+			Email:    body.Email,
+			Password: body.Password,
+		},
 	)
 
 	if err != nil {
@@ -50,9 +54,12 @@ func (h *AuthHandler) Login(c fiber.Ctx) error {
 		return fiber.ErrBadRequest
 	}
 
-	resp, err := h.auth.Login(
-		body.Email,
-		body.Password,
+	resp, err := h.clients.Auth.Login(
+		c.Context(),
+		&authpb.LoginReq{
+			Email:    body.Email,
+			Password: body.Password,
+		},
 	)
 
 	if err != nil {

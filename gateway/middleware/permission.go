@@ -11,7 +11,7 @@ import (
 func PermissionMiddleware(requiredPerms ...string) fiber.Handler {
 	return func(c fiber.Ctx) error {
 		// Must come after AuthMiddleware
-		auth, ok := c.Locals("auth").(*cache.AuthCache)
+		auth, ok := c.Locals("auth").(*cache.AuthResp)
 		if !ok || auth == nil {
 			return response.Error(
 				c,

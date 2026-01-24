@@ -2,36 +2,37 @@ package middleware
 
 import (
 	"context"
-	"gateway/cache"
-	"strings"
 
-	"github.com/gofiber/fiber/v3"
+	ctxkey "hpkg/grpc"
+
 	"google.golang.org/grpc/metadata"
 )
 
 // AttachUserMetadata creates a gRPC outgoing context with user ID and roles from Fiber context or cache.
-func AttachUserMetadata(c fiber.Ctx, auth *cache.AuthCache, ctx context.Context) context.Context {
-	// Get userID from Fiber locals or fallback to cache
-	userIDRaw := c.Locals("userID", auth.UserID)
-	userID, _ := userIDRaw.(string) // assert to string
+func AttachUserMetadata(ctx context.Context, userID string) context.Context {
+	// Attach to Go context
+	ctx = context.WithValue(ctx, ctxkey.UserIDKey, userID)
 
-	// Get roles from Fiber locals or fallback to cache
-	rolesRaw := c.Locals("role", auth.Role)
-	var roles []string
-
-	switch v := rolesRaw.(type) {
-	case string:
-		roles = []string{v}
-	case []string:
-		roles = v
-	default:
-		roles = []string{}
+	// Attach to gRPC outgoing metadata
+	md, ok := metadata.FromOutgoingContext(ctx)
+	if !ok {
+		md = metadata.New(nil)
 	}
+	md.Set("x-user-id", userID)
 
-	md := metadata.New(map[string]string{
-		"x-user-id": userID,
-		"x-roles":   strings.Join(roles, ","),
-	})
+	return metadata.NewOutgoingContext(ctx, md)
+}
+
+func AttachShopMetadata(ctx context.Context, shopID string) context.Context {
+	// Attach to Go context
+	ctx = context.WithValue(ctx, ctxkey.ShopIDKey, shopID)
+
+	// Attach to gRPC outgoing metadata
+	md, ok := metadata.FromOutgoingContext(ctx)
+	if !ok {
+		md = metadata.New(nil)
+	}
+	md.Set("x-shop-id", shopID)
 
 	return metadata.NewOutgoingContext(ctx, md)
 }

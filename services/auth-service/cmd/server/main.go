@@ -9,9 +9,9 @@ import (
 	"authservice/internal/service"
 	"authservice/proto/authpb"
 
-	"hpkg/auth"
 	"hpkg/db"
 	"hpkg/grpc/interceptor"
+	auth "hpkg/grpc/middeware"
 
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/reflection"

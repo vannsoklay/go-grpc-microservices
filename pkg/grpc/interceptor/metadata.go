@@ -2,6 +2,7 @@ package interceptor
 
 import (
 	"context"
+	"fmt"
 
 	"gateway/cache"
 
@@ -27,7 +28,8 @@ func UserMetadataUnaryInterceptor() grpc.UnaryClientInterceptor {
 			ctx = context.Background()
 		}
 
-		auth, ok := ctx.Value(AuthContextKey).(*cache.AuthCache)
+		auth, ok := ctx.Value(AuthContextKey).(*cache.AuthResp)
+		fmt.Printf("auth %v", auth)
 		if !ok || auth == nil {
 			return invoker(ctx, method, req, reply, cc, opts...)
 		}

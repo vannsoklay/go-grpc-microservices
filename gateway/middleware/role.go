@@ -8,7 +8,7 @@ import (
 
 func RoleMiddleware(allowedRoles ...string) fiber.Handler {
 	return func(c fiber.Ctx) error {
-		authCache, ok := c.Locals("authCache").(*cache.AuthCache)
+		authCache, ok := c.Locals("authCache").(*cache.AuthResp)
 		if !ok {
 			return fiber.ErrUnauthorized
 		}

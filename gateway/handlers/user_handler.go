@@ -25,7 +25,7 @@ func NewUserHandler(clients *grpc.GRPCClients) *UserHandler {
 func (h *UserHandler) GetUser(c fiber.Ctx) error {
 	// --- defensive check ---
 	ctx, ok := c.Locals("ctx").(context.Context)
-	auth, authOk := c.Locals("auth").(*cache.AuthCache)
+	auth, authOk := c.Locals("auth").(*cache.AuthResp)
 
 	if !ok || ctx == nil || !authOk || auth == nil {
 		return response.Error(c, fiber.StatusUnauthorized, constants.ErrUnauthorizedCode)

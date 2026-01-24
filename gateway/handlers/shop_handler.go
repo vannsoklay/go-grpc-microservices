@@ -23,7 +23,7 @@ func NewShopHandler(clients *grpc.GRPCClients) *ShopHandler {
 
 func (h *ShopHandler) CreateShop(c fiber.Ctx) error {
 	ctx, ok := c.Locals("ctx").(context.Context)
-	auth, authOk := c.Locals("auth").(*cache.AuthCache)
+	auth, authOk := c.Locals("auth").(*cache.AuthResp)
 
 	if !ok || ctx == nil || !authOk || auth == nil {
 		return response.Error(c, fiber.StatusUnauthorized, constants.ErrUnauthorizedCode)
@@ -45,7 +45,7 @@ func (h *ShopHandler) CreateShop(c fiber.Ctx) error {
 
 func (h *ShopHandler) GetMyShop(c fiber.Ctx) error {
 	ctx, ok := c.Locals("ctx").(context.Context)
-	auth, authOk := c.Locals("auth").(*cache.AuthCache)
+	auth, authOk := c.Locals("auth").(*cache.AuthResp)
 
 	if !ok || ctx == nil || !authOk || auth == nil {
 		return response.Error(c, fiber.StatusUnauthorized, constants.ErrUnauthorizedCode)
@@ -62,7 +62,7 @@ func (h *ShopHandler) GetMyShop(c fiber.Ctx) error {
 
 func (h *ShopHandler) UpdateShop(c fiber.Ctx) error {
 	ctx, ok := c.Locals("ctx").(context.Context)
-	auth, authOk := c.Locals("auth").(*cache.AuthCache)
+	auth, authOk := c.Locals("auth").(*cache.AuthResp)
 
 	if !ok || ctx == nil || !authOk || auth == nil {
 		return response.Error(c, fiber.StatusUnauthorized, constants.ErrUnauthorizedCode)
@@ -84,7 +84,7 @@ func (h *ShopHandler) UpdateShop(c fiber.Ctx) error {
 
 func (h *ShopHandler) DeleteShop(c fiber.Ctx) error {
 	ctx, ok := c.Locals("ctx").(context.Context)
-	auth, authOk := c.Locals("auth").(*cache.AuthCache)
+	auth, authOk := c.Locals("auth").(*cache.AuthResp)
 
 	if !ok || ctx == nil || !authOk || auth == nil {
 		return response.Error(c, fiber.StatusUnauthorized, constants.ErrUnauthorizedCode)

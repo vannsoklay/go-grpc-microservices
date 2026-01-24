@@ -31,7 +31,7 @@ func RateLimitMiddleware(
 	}
 
 	return func(c fiber.Ctx) error {
-		auth, _ := c.Locals("auth").(*cache.AuthCache)
+		auth, _ := c.Locals("auth").(*cache.AuthResp)
 
 		var key string
 		if auth != nil && auth.UserID != "" {

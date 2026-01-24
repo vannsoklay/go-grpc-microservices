@@ -39,9 +39,9 @@ func FromGRPC(c fiber.Ctx, err error) error {
 	})
 }
 
-func getAuthContext(c fiber.Ctx) (context.Context, *cache.AuthCache, error) {
+func getAuthContext(c fiber.Ctx) (context.Context, *cache.AuthResp, error) {
 	ctx, ok := c.Locals("ctx").(context.Context)
-	auth, authOk := c.Locals("auth").(*cache.AuthCache)
+	auth, authOk := c.Locals("auth").(*cache.AuthResp)
 
 	if !ok || ctx == nil || !authOk || auth == nil {
 		return nil, nil, fiber.ErrUnauthorized

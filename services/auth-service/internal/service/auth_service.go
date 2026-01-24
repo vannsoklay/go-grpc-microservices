@@ -5,8 +5,8 @@ import (
 	"database/sql"
 	"errors"
 	"fmt"
-	"hpkg/auth"
 	appErr "hpkg/grpc"
+	auth "hpkg/grpc/middeware"
 
 	"authservice/internal/domain"
 	"authservice/proto/authpb"

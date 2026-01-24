@@ -8,29 +8,23 @@ import (
 	"github.com/redis/go-redis/v9"
 )
 
-type AuthRedisCache struct {
-	client *redis.Client
+type AuthCache struct {
+	rdb *RedisCache
+	ttl time.Duration
 }
 
-type AuthCache struct {
+type AuthResp struct {
 	UserID      string   `json:"user_id"`
-	Username    string   `json:"username"`
 	Role        string   `json:"role"`
 	Permissions []string `json:"permissions"`
 }
 
-func NewAuthRedisCache(addr, password string, db int) *AuthRedisCache {
-	rdb := redis.NewClient(&redis.Options{
-		Addr:     addr,     // "localhost:6379"
-		Password: password, // "" if none
-		DB:       db,
-	})
-
-	return &AuthRedisCache{client: rdb}
+func NewAuthCache(rdb *RedisCache, ttl time.Duration) *AuthCache {
+	return &AuthCache{rdb: rdb, ttl: ttl}
 }
 
-func (r *AuthRedisCache) GetAuth(ctx context.Context, token string) (*AuthCache, error) {
-	val, err := r.client.Get(ctx, token).Result()
+func (r *AuthCache) GetAuth(ctx context.Context, token string) (*AuthResp, error) {
+	val, err := r.rdb.Get(ctx, token)
 	if err == redis.Nil {
 		return nil, nil
 	}
@@ -38,7 +32,7 @@ func (r *AuthRedisCache) GetAuth(ctx context.Context, token string) (*AuthCache,
 		return nil, err
 	}
 
-	var cache AuthCache
+	var cache AuthResp
 	if err := json.Unmarshal([]byte(val), &cache); err != nil {
 		return nil, err
 	}
@@ -46,12 +40,12 @@ func (r *AuthRedisCache) GetAuth(ctx context.Context, token string) (*AuthCache,
 	return &cache, nil
 }
 
-func (r *AuthRedisCache) SetAuth(
+func (r *AuthCache) SetAuth(
 	ctx context.Context,
 	token string,
-	value *AuthCache,
+	value *AuthResp,
 	ttl time.Duration,
 ) error {
 	data, _ := json.Marshal(value)
-	return r.client.Set(ctx, token, data, ttl).Err()
+	return r.rdb.Set(ctx, token, string(data), ttl)
 }

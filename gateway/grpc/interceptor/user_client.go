@@ -23,7 +23,7 @@ func UserMetadataUnaryInterceptor() grpc.UnaryClientInterceptor {
 			ctx = context.Background()
 		}
 
-		auth, ok := ctx.Value(ctxkey.UserIDKey).(*cache.AuthCache)
+		auth, ok := ctx.Value(ctxkey.UserIDKey).(*cache.AuthResp)
 		if !ok || auth == nil {
 			return invoker(ctx, method, req, reply, cc, opts...)
 		}

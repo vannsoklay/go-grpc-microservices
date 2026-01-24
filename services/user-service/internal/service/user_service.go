@@ -4,6 +4,7 @@ import (
 	"context"
 	"database/sql"
 	"errors"
+	"fmt"
 
 	"time"
 	domain "userservice/internal/domain/entities"
@@ -31,6 +32,7 @@ func MustGetUserID(ctx context.Context) (string, error) {
 	}
 
 	userIDs := md.Get("x-user-id")
+	fmt.Printf("userIDs %v", userIDs)
 	if len(userIDs) == 0 || userIDs[0] == "" {
 		return "", status.Error(codes.Unauthenticated, "user not authenticated")
 	}
