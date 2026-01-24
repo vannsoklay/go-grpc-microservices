@@ -5,9 +5,7 @@ import (
 	"gateway/cache"
 	"gateway/grpc"
 
-	"hpkg/constants"
-	"hpkg/constants/response"
-	grpcmw "hpkg/grpc"
+	"hpkg/constants/responses"
 
 	"github.com/gofiber/fiber/v3"
 	"google.golang.org/protobuf/types/known/emptypb"
@@ -28,15 +26,14 @@ func (h *UserHandler) GetUser(c fiber.Ctx) error {
 	auth, authOk := c.Locals("auth").(*cache.AuthResp)
 
 	if !ok || ctx == nil || !authOk || auth == nil {
-		return response.Error(c, fiber.StatusUnauthorized, constants.ErrUnauthorizedCode)
+		return responses.Error(c, fiber.StatusUnauthorized, responses.ErrUnauthorizedCode)
 	}
 
 	// --- gRPC call with safe context ---
 	resp, err := h.clients.User.GetUserDetail(ctx, &emptypb.Empty{})
 	if err != nil {
-		httpErr := grpcmw.ToGRPC(err)
-		return response.Error(c, httpErr.Status, httpErr.Code)
+		return responses.FromError(c, err)
 	}
 
-	return response.Success(c, fiber.StatusOK, resp)
+	return responses.Success(c, fiber.StatusOK, resp)
 }

@@ -6,9 +6,7 @@ import (
 	"fmt"
 	"gateway/cache"
 	"gateway/grpc"
-	"hpkg/constants"
-	"hpkg/constants/response"
-	serverErr "hpkg/grpc"
+	"hpkg/constants/responses"
 	"productservice/proto/productpb"
 	"strconv"
 	"time"
@@ -31,14 +29,6 @@ func NewProductHandler(
 	}
 }
 
-func FromGRPC(c fiber.Ctx, err error) error {
-	httpErr := serverErr.ToGRPC(err)
-
-	return c.Status(httpErr.Status).JSON(fiber.Map{
-		"code": httpErr.Code,
-	})
-}
-
 func getAuthContext(c fiber.Ctx) (context.Context, *cache.AuthResp, error) {
 	ctx, ok := c.Locals("ctx").(context.Context)
 	auth, authOk := c.Locals("auth").(*cache.AuthResp)
@@ -53,12 +43,12 @@ func getAuthContext(c fiber.Ctx) (context.Context, *cache.AuthResp, error) {
 func (h *RequestHandler) ListProductsByShop(c fiber.Ctx) error {
 	ctx, _, err := getAuthContext(c)
 	if err != nil {
-		return response.Error(c, fiber.StatusUnauthorized, constants.ErrUnauthorizedCode)
+		return responses.Error(c, fiber.StatusUnauthorized, responses.ErrUnauthorizedCode)
 	}
 
 	shopID, ok := c.Locals("shop_id").(string)
 	if !ok || shopID == "" {
-		return response.Error(c, fiber.StatusForbidden, constants.ErrForbiddenCode)
+		return responses.Error(c, fiber.StatusForbidden, responses.ErrForbiddenCode)
 	}
 
 	limitStr := c.Query("limit", "20")
@@ -83,7 +73,7 @@ func (h *RequestHandler) ListProductsByShop(c fiber.Ctx) error {
 		if cached != "" {
 			var result fiber.Map
 			if err := json.Unmarshal([]byte(cached), &result); err == nil {
-				return response.Success(c, fiber.StatusOK, result)
+				return responses.Success(c, fiber.StatusOK, result)
 			}
 		}
 	}
@@ -100,7 +90,7 @@ func (h *RequestHandler) ListProductsByShop(c fiber.Ctx) error {
 		Sort:   sort,
 	})
 	if err != nil {
-		return response.FromGRPC[any](c, err)
+		return responses.FromGRPC[any](c, err)
 	}
 
 	result := fiber.Map{
@@ -114,18 +104,18 @@ func (h *RequestHandler) ListProductsByShop(c fiber.Ctx) error {
 		}
 	}
 
-	return response.Success(c, fiber.StatusOK, result)
+	return responses.Success(c, fiber.StatusOK, result)
 }
 
 func (h *RequestHandler) GetProductByID(c fiber.Ctx) error {
 	ctx, _, err := getAuthContext(c)
 	if err != nil {
-		return response.Error(c, fiber.StatusUnauthorized, constants.ErrUnauthorizedCode)
+		return responses.Error(c, fiber.StatusUnauthorized, responses.ErrUnauthorizedCode)
 	}
 
 	productID := c.Params("id")
 	if productID == "" {
-		return response.Error(c, fiber.StatusBadRequest, constants.ErrBadRequestCode)
+		return responses.Error(c, fiber.StatusBadRequest, responses.ErrBadRequestCode)
 	}
 
 	ctx, cancel := context.WithTimeout(ctx, 5*time.Second)
@@ -144,12 +134,12 @@ func (h *RequestHandler) GetProductByID(c fiber.Ctx) error {
 func (h *RequestHandler) CreateProduct(c fiber.Ctx) error {
 	ctx, _, err := getAuthContext(c)
 	if err != nil {
-		return response.Error(c, fiber.StatusUnauthorized, constants.ErrUnauthorizedCode)
+		return responses.Error(c, fiber.StatusUnauthorized, responses.ErrUnauthorizedCode)
 	}
 
 	var req productpb.CreateProductRequest
 	if err := c.Bind().Body(&req); err != nil {
-		return response.Error(c, fiber.StatusBadRequest, constants.ErrBadRequestCode)
+		return responses.Error(c, fiber.StatusBadRequest, responses.ErrBadRequestCode)
 	}
 
 	ctx, cancel := context.WithTimeout(ctx, 5*time.Second)
@@ -157,7 +147,7 @@ func (h *RequestHandler) CreateProduct(c fiber.Ctx) error {
 
 	resp, err := h.clients.Product.CreateProduct(ctx, &req)
 	if err != nil {
-		return response.FromGRPC[any](c, err)
+		return responses.FromGRPC[any](c, err)
 	}
 
 	return c.Status(fiber.StatusCreated).JSON(fiber.Map{
@@ -169,17 +159,17 @@ func (h *RequestHandler) CreateProduct(c fiber.Ctx) error {
 func (h *RequestHandler) UpdateProduct(c fiber.Ctx) error {
 	ctx, _, err := getAuthContext(c)
 	if err != nil {
-		return response.Error(c, fiber.StatusUnauthorized, constants.ErrUnauthorizedCode)
+		return responses.Error(c, fiber.StatusUnauthorized, responses.ErrUnauthorizedCode)
 	}
 
 	productID := c.Params("id")
 	if productID == "" {
-		return response.Error(c, fiber.StatusBadRequest, constants.ErrBadRequestCode)
+		return responses.Error(c, fiber.StatusBadRequest, responses.ErrBadRequestCode)
 	}
 
 	var req productpb.UpdateProductRequest
 	if err := c.Bind().Body(&req); err != nil {
-		return response.Error(c, fiber.StatusBadRequest, constants.ErrBadRequestCode)
+		return responses.Error(c, fiber.StatusBadRequest, responses.ErrBadRequestCode)
 	}
 
 	req.ProductId = productID
@@ -189,7 +179,7 @@ func (h *RequestHandler) UpdateProduct(c fiber.Ctx) error {
 
 	resp, err := h.clients.Product.UpdateProduct(ctx, &req)
 	if err != nil {
-		return response.FromGRPC[any](c, err)
+		return responses.FromGRPC[any](c, err)
 	}
 
 	return c.JSON(fiber.Map{
@@ -201,12 +191,12 @@ func (h *RequestHandler) UpdateProduct(c fiber.Ctx) error {
 func (h *RequestHandler) DeleteProduct(c fiber.Ctx) error {
 	ctx, _, err := getAuthContext(c)
 	if err != nil {
-		return response.Error(c, fiber.StatusUnauthorized, constants.ErrUnauthorizedCode)
+		return responses.Error(c, fiber.StatusUnauthorized, responses.ErrUnauthorizedCode)
 	}
 
 	productID := c.Params("id")
 	if productID == "" {
-		return response.Error(c, fiber.StatusBadRequest, constants.ErrBadRequestCode)
+		return responses.Error(c, fiber.StatusBadRequest, responses.ErrBadRequestCode)
 	}
 
 	ctx, cancel := context.WithTimeout(ctx, 5*time.Second)
@@ -217,8 +207,8 @@ func (h *RequestHandler) DeleteProduct(c fiber.Ctx) error {
 	})
 
 	if err != nil {
-		return response.FromGRPC[any](c, err)
+		return responses.FromGRPC[any](c, err)
 	}
 
-	return response.FromGRPC[any](c, err, resp)
+	return responses.FromGRPC[any](c, err, resp)
 }

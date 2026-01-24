@@ -1,4 +1,4 @@
-package constants
+package responses
 
 // ===== Auth Errors =====
 const (
@@ -58,6 +58,27 @@ const (
 
 	ErrInternalCode = "INTERNAL_SERVER_ERROR"
 	ErrInternalMsg  = "An unexpected internal server error occurred. Our team has been notified"
+)
+
+// Product Service Errors
+const (
+	ErrProductServiceCode = "PRODUCT_SERVICE_ERROR"
+	ErrProductServiceMsg  = "Failed to fetch product data. Please try again later"
+
+	ErrProductNotFoundCode = "PRODUCT_NOT_FOUND"
+	ErrProductNotFoundMsg  = "Product not found"
+
+	ErrProductInvalidCode = "PRODUCT_INVALID"
+	ErrProductInvalidMsg  = "Invalid product data provided"
+
+	ErrProductOutOfStockCode = "PRODUCT_OUT_OF_STOCK"
+	ErrProductOutOfStockMsg  = "Product is out of stock"
+
+	ErrProductConflictCode = "PRODUCT_CONFLICT"
+	ErrProductConflictMsg  = "Product already exists"
+
+	ErrProductCategoryNotFoundCode = "PRODUCT_CATEGORY_NOT_FOUND"
+	ErrProductCategoryNotFoundMsg  = "Product category not found"
 )
 
 // ===== Success Responses =====

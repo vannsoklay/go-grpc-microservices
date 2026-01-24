@@ -10,8 +10,7 @@ import (
 	"gateway/cache"
 	"gateway/grpc"
 
-	"hpkg/constants"
-	"hpkg/constants/response"
+	errors "hpkg/constants/responses"
 
 	"github.com/gofiber/fiber/v3"
 
@@ -22,12 +21,12 @@ func AuthMiddleware(client *grpc.GRPCClients, authCache *cache.AuthCache) fiber.
 	return func(c fiber.Ctx) error {
 		header := c.Get("Authorization")
 		if header == "" {
-			return response.Error(c, fiber.StatusUnauthorized, constants.ErrAuthHeaderMissingCode)
+			return errors.Error(c, fiber.StatusUnauthorized, errors.ErrAuthHeaderMissingCode)
 		}
 
 		token := strings.TrimPrefix(header, "Bearer ")
 		if token == "" {
-			return response.Error(c, fiber.StatusUnauthorized, constants.ErrTokenInvalidCode)
+			return errors.Error(c, fiber.StatusUnauthorized, errors.ErrTokenInvalidCode)
 		}
 
 		ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
@@ -47,7 +46,7 @@ func AuthMiddleware(client *grpc.GRPCClients, authCache *cache.AuthCache) fiber.
 
 			fmt.Printf("err %v", err)
 			if err != nil {
-				return response.Error(c, fiber.StatusUnauthorized, constants.ErrTokenExpiredCode)
+				return errors.Error(c, fiber.StatusUnauthorized, errors.ErrTokenExpiredCode)
 			}
 
 			authResp = &cache.AuthResp{

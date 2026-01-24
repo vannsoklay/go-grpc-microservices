@@ -7,7 +7,7 @@ import (
 	"log/slog"
 
 	pagination "hpkg/constants"
-	sharedErr "hpkg/errors"
+	errors "hpkg/constants/responses"
 	"productservice/domain"
 )
 
@@ -202,7 +202,7 @@ func (r *PostgresProductRepository) GetByID(
 			r.logger.WarnContext(ctx, "product not found",
 				"productID", id,
 			)
-			return nil, sharedErr.ErrNotFound
+			return nil, errors.NotFoundServiceError(errors.ErrProductNotFoundMsg)
 		}
 		r.logger.ErrorContext(ctx, "failed to scan product",
 			"error", err,
@@ -348,7 +348,7 @@ func (r *PostgresProductRepository) Update(
 			r.logger.WarnContext(ctx, "product not found for update",
 				"productID", req.ID,
 			)
-			return nil, sharedErr.ErrNotFound
+			return nil, errors.NotFoundServiceError(errors.ErrProductNotFoundMsg)
 		}
 		r.logger.ErrorContext(ctx, "failed to update product",
 			"error", err,
@@ -395,7 +395,7 @@ func (r *PostgresProductRepository) Delete(
 		r.logger.WarnContext(ctx, "product not found for deletion",
 			"productID", id,
 		)
-		return sharedErr.ErrNotFound
+		return errors.NotFoundServiceError(errors.ErrProductNotFoundMsg)
 	}
 
 	r.logger.InfoContext(ctx, "product deleted successfully",

@@ -5,8 +5,7 @@ import (
 	"gateway/cache"
 	"shopservice/proto/shoppb"
 
-	"hpkg/constants"
-	"hpkg/constants/response"
+	"hpkg/constants/responses"
 
 	"github.com/gofiber/fiber/v3"
 )
@@ -20,19 +19,19 @@ func ShopMiddleware(
 		// --- 1. Get context ---
 		ctx, ok := c.Locals("ctx").(context.Context)
 		if !ok || ctx == nil {
-			return response.Error(c, fiber.StatusUnauthorized, constants.ErrUnauthorizedCode, constants.ErrUnauthorizedMsg)
+			return responses.Error(c, fiber.StatusUnauthorized, responses.ErrUnauthorizedCode, responses.ErrUnauthorizedMsg)
 		}
 
 		// --- 2. Get auth info ---
 		auth, ok := c.Locals("auth").(*cache.AuthResp)
 		if !ok || auth == nil {
-			return response.Error(c, fiber.StatusUnauthorized, constants.ErrUnauthorizedCode, constants.ErrUnauthorizedMsg)
+			return responses.Error(c, fiber.StatusUnauthorized, responses.ErrUnauthorizedCode, responses.ErrUnauthorizedMsg)
 		}
 
 		// --- 3. Get shop ID from header ---
 		shopID := c.Get("X-Shop-Id")
 		if shopID == "" {
-			return response.Error(c, fiber.StatusBadRequest, constants.ShopRequiredCode, constants.ErrUnauthorizedMsg)
+			return responses.Error(c, fiber.StatusBadRequest, responses.ShopRequiredCode, responses.ErrUnauthorizedMsg)
 		}
 
 		// --- 4. Check Redis cache (userID + shopID) ---
@@ -47,10 +46,10 @@ func ShopMiddleware(
 		// --- 5. Validate shop via shop-service ---
 		shopResp, err := shopClient.GetMyShop(ctx, &shoppb.GetMyShopRequest{})
 		if err != nil {
-			return response.Error(c, fiber.StatusForbidden, constants.ShopAccessDeniedCode, "Cannot access this shop")
+			return responses.Error(c, fiber.StatusForbidden, responses.ShopAccessDeniedCode, "Cannot access this shop")
 		}
 		if shopResp.Id != shopID {
-			return response.Error(c, fiber.StatusForbidden, constants.ShopAccessDeniedCode, "Shop ID mismatch")
+			return responses.Error(c, fiber.StatusForbidden, responses.ShopAccessDeniedCode, "Shop ID mismatch")
 		}
 
 		// --- 6. Cache valid mapping ---

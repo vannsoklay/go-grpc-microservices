@@ -2,8 +2,7 @@ package middleware
 
 import (
 	"gateway/cache"
-	"hpkg/constants"
-	"hpkg/constants/response"
+	errors "hpkg/constants/responses"
 
 	"github.com/gofiber/fiber/v3"
 )
@@ -13,18 +12,18 @@ func PermissionMiddleware(requiredPerms ...string) fiber.Handler {
 		// Must come after AuthMiddleware
 		auth, ok := c.Locals("auth").(*cache.AuthResp)
 		if !ok || auth == nil {
-			return response.Error(
+			return errors.Error(
 				c,
 				fiber.StatusUnauthorized,
-				constants.ErrUnauthorizedCode,
+				errors.ErrUnauthorizedCode,
 			)
 		}
 
 		if !hasPermissions(auth.Permissions, requiredPerms) {
-			return response.Error(
+			return errors.Error(
 				c,
 				fiber.StatusForbidden,
-				constants.ErrForbiddenCode,
+				errors.ErrForbiddenCode,
 			)
 		}
 

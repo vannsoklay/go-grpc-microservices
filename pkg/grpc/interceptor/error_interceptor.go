@@ -2,7 +2,6 @@ package interceptor
 
 import (
 	"context"
-	appErr "hpkg/grpc"
 
 	"google.golang.org/grpc"
 )
@@ -17,7 +16,7 @@ func ErrorUnaryInterceptor() grpc.UnaryServerInterceptor {
 
 		resp, err := handler(ctx, req)
 		if err != nil {
-			return nil, appErr.ToGRPC(err)
+			return nil, err
 		}
 
 		return resp, nil

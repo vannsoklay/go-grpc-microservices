@@ -6,9 +6,7 @@ import (
 	"gateway/grpc"
 	"shopservice/proto/shoppb"
 
-	"hpkg/constants"
-	"hpkg/constants/response"
-	grpcmw "hpkg/grpc"
+	"hpkg/constants/responses"
 
 	"github.com/gofiber/fiber/v3"
 )
@@ -26,21 +24,20 @@ func (h *ShopHandler) CreateShop(c fiber.Ctx) error {
 	auth, authOk := c.Locals("auth").(*cache.AuthResp)
 
 	if !ok || ctx == nil || !authOk || auth == nil {
-		return response.Error(c, fiber.StatusUnauthorized, constants.ErrUnauthorizedCode)
+		return responses.Error(c, fiber.StatusUnauthorized, responses.ErrUnauthorizedCode)
 	}
 
 	var req shoppb.CreateShopRequest
 	if err := c.Bind().Body(&req); err != nil {
-		return response.Error(c, fiber.StatusBadRequest, constants.ErrInvalidPayloadCode)
+		return responses.Error(c, fiber.StatusBadRequest, responses.ErrInvalidPayloadCode)
 	}
 
 	resp, err := h.clients.Shop.CreateShop(ctx, &req)
 	if err != nil {
-		httpErr := grpcmw.ToGRPC(err)
-		return response.Error(c, httpErr.Status, httpErr.Code)
+		return responses.FromError(c, err)
 	}
 
-	return response.Success(c, fiber.StatusCreated, resp)
+	return responses.Success(c, fiber.StatusCreated, resp)
 }
 
 func (h *ShopHandler) GetMyShop(c fiber.Ctx) error {
@@ -48,16 +45,15 @@ func (h *ShopHandler) GetMyShop(c fiber.Ctx) error {
 	auth, authOk := c.Locals("auth").(*cache.AuthResp)
 
 	if !ok || ctx == nil || !authOk || auth == nil {
-		return response.Error(c, fiber.StatusUnauthorized, constants.ErrUnauthorizedCode)
+		return responses.Error(c, fiber.StatusUnauthorized, responses.ErrUnauthorizedCode)
 	}
 
 	resp, err := h.clients.Shop.GetMyShop(ctx, &shoppb.GetMyShopRequest{})
 	if err != nil {
-		httpErr := grpcmw.ToGRPC(err)
-		return response.Error(c, httpErr.Status, httpErr.Code)
+		return responses.FromError(c, err)
 	}
 
-	return response.Success(c, fiber.StatusOK, resp)
+	return responses.Success(c, fiber.StatusOK, resp)
 }
 
 func (h *ShopHandler) UpdateShop(c fiber.Ctx) error {
@@ -65,21 +61,20 @@ func (h *ShopHandler) UpdateShop(c fiber.Ctx) error {
 	auth, authOk := c.Locals("auth").(*cache.AuthResp)
 
 	if !ok || ctx == nil || !authOk || auth == nil {
-		return response.Error(c, fiber.StatusUnauthorized, constants.ErrUnauthorizedCode)
+		return responses.Error(c, fiber.StatusUnauthorized, responses.ErrUnauthorizedCode)
 	}
 
 	var req shoppb.UpdateShopRequest
 	if err := c.Bind().Body(&req); err != nil {
-		return response.Error(c, fiber.StatusBadRequest, constants.ErrInvalidPayloadCode)
+		return responses.Error(c, fiber.StatusBadRequest, responses.ErrInvalidPayloadCode)
 	}
 
 	resp, err := h.clients.Shop.UpdateShop(ctx, &req)
 	if err != nil {
-		httpErr := grpcmw.ToGRPC(err)
-		return response.Error(c, httpErr.Status, httpErr.Code)
+		return responses.FromError(c, err)
 	}
 
-	return response.Success(c, fiber.StatusOK, resp)
+	return responses.Success(c, fiber.StatusOK, resp)
 }
 
 func (h *ShopHandler) DeleteShop(c fiber.Ctx) error {
@@ -87,14 +82,13 @@ func (h *ShopHandler) DeleteShop(c fiber.Ctx) error {
 	auth, authOk := c.Locals("auth").(*cache.AuthResp)
 
 	if !ok || ctx == nil || !authOk || auth == nil {
-		return response.Error(c, fiber.StatusUnauthorized, constants.ErrUnauthorizedCode)
+		return responses.Error(c, fiber.StatusUnauthorized, responses.ErrUnauthorizedCode)
 	}
 
 	resp, err := h.clients.Shop.DeleteShop(ctx, &shoppb.DeleteShopRequest{})
 	if err != nil {
-		httpErr := grpcmw.ToGRPC(err)
-		return response.Error(c, httpErr.Status, httpErr.Code)
+		return responses.FromError(c, err)
 	}
 
-	return response.Success(c, fiber.StatusOK, resp)
+	return responses.Success(c, fiber.StatusOK, resp)
 }

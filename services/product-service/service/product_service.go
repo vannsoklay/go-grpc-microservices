@@ -4,7 +4,6 @@ import (
 	"context"
 	"fmt"
 
-	sharedErr "hpkg/errors"
 	"hpkg/grpc"
 	ctxkey "hpkg/grpc"
 	"productservice/domain"
@@ -97,7 +96,7 @@ func (s *ProductService) ListProductsByShop(
 
 	products, nextCursor, err := s.repo.ListByShopID(ctx, shopID, req.Search, req.Filter, sortColumn, sortDesc, int(req.Limit), req.Cursor)
 	if err != nil {
-		return nil, sharedErr.ToGRPC(err)
+		return nil, err
 	}
 
 	resp := &productpb.ListProductsByShopResponse{
@@ -135,7 +134,7 @@ func (s *ProductService) GetProductByID(
 
 	product, err := s.repo.GetByID(ctx, req.ProductId)
 	if err != nil {
-		return nil, sharedErr.ToGRPC(err)
+		return nil, err
 	}
 
 	return &productpb.GetProductResponse{
@@ -153,7 +152,7 @@ func (s *ProductService) CreateProduct(
 
 	userID, err := grpc.MustGetUserID(ctx)
 	if err != nil {
-		return nil, sharedErr.ToGRPC(err)
+		return nil, err
 	}
 
 	fmt.Printf("Creating product for userID: %v\n", userID)
@@ -168,7 +167,7 @@ func (s *ProductService) CreateProduct(
 		Detail:      req.Description,
 	})
 	if err != nil {
-		return nil, sharedErr.ToGRPC(err)
+		return nil, err
 	}
 
 	return &productpb.CreateProductResponse{
@@ -195,7 +194,7 @@ func (s *ProductService) UpdateProduct(
 
 	product, err := s.repo.Update(ctx, updateReq)
 	if err != nil {
-		return nil, sharedErr.ToGRPC(err)
+		return nil, err
 	}
 
 	return &productpb.UpdateProductResponse{
@@ -212,7 +211,7 @@ func (s *ProductService) DeleteProduct(
 ) (*productpb.DeleteProductResponse, error) {
 
 	if err := s.repo.Delete(ctx, req.ProductId); err != nil {
-		return nil, sharedErr.ToGRPC(err)
+		return nil, err
 	}
 
 	return &productpb.DeleteProductResponse{

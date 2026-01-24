@@ -5,8 +5,7 @@ import (
 
 	"github.com/gofiber/fiber/v3"
 
-	"hpkg/constants/response"
-	"hpkg/grpc"
+	"hpkg/constants/responses"
 )
 
 // ResponseFilter ensures all responses have a consistent structure
@@ -15,7 +14,7 @@ func ResponseFilter() fiber.Handler {
 		// Recover from panics
 		defer func() {
 			if r := recover(); r != nil {
-				_ = response.Error(c, fiber.StatusInternalServerError, "ERR_INTERNAL")
+				_ = responses.Error(c, fiber.StatusInternalServerError, "ERR_INTERNAL")
 			}
 		}()
 
@@ -27,12 +26,12 @@ func ResponseFilter() fiber.Handler {
 		}
 
 		// If the error is a grpc.HTTPError (already converted from gRPC)
-		var httpErr grpc.HTTPError
+		var httpErr responses.HTTPError
 		if errors.As(err, &httpErr) {
-			return response.Error(c, httpErr.Status, httpErr.Code)
+			return responses.Error(c, httpErr.Status, httpErr.Code)
 		}
 
 		// Fallback for unknown errors
-		return response.Error(c, fiber.StatusInternalServerError, "ERR_INTERNAL")
+		return responses.Error(c, fiber.StatusInternalServerError, "ERR_INTERNAL")
 	}
 }

@@ -5,7 +5,7 @@ import (
 	"database/sql"
 	"errors"
 	"fmt"
-	appErr "hpkg/grpc"
+	err "hpkg/constants/responses"
 	auth "hpkg/grpc/middeware"
 
 	"authservice/internal/domain"
@@ -122,7 +122,7 @@ func (s *AuthService) Login(
 
 func (s *AuthService) ValidateToken(ctx context.Context, req *authpb.TokenReq) (*authpb.ValidateTokenResp, error) {
 	if req == nil || req.Token == "" {
-		return nil, appErr.HTTPError{}
+		return nil, err.ValidationServiceError(err.ErrTokenInvalidMsg)
 	}
 
 	claim, err := s.jwtService.ValidateAccessToken(req.Token)
