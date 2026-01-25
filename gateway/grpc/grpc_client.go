@@ -45,7 +45,6 @@ func NewGRPCClients() (*GRPCClients, error) {
 	// Shop Service
 	shopConn, err := grpc.Dial(":50058", grpc.WithTransportCredentials(insecure.NewCredentials()), grpc.WithChainUnaryInterceptor(
 		interceptor.UserMetadataUnaryInterceptor(),
-		interceptor.ShopMetadataUnaryClientInterceptor(),
 	))
 	if err != nil {
 		return nil, fmt.Errorf("failed to connect to auth service: %v", err)

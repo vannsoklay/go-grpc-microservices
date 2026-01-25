@@ -19,10 +19,11 @@ import (
 const _ = grpc.SupportPackageIsVersion9
 
 const (
-	ShopService_CreateShop_FullMethodName = "/shoppb.ShopService/CreateShop"
-	ShopService_GetMyShop_FullMethodName  = "/shoppb.ShopService/GetMyShop"
-	ShopService_UpdateShop_FullMethodName = "/shoppb.ShopService/UpdateShop"
-	ShopService_DeleteShop_FullMethodName = "/shoppb.ShopService/DeleteShop"
+	ShopService_CreateShop_FullMethodName     = "/shoppb.ShopService/CreateShop"
+	ShopService_ListOwnedShops_FullMethodName = "/shoppb.ShopService/ListOwnedShops"
+	ShopService_ValidateShop_FullMethodName   = "/shoppb.ShopService/ValidateShop"
+	ShopService_UpdateShop_FullMethodName     = "/shoppb.ShopService/UpdateShop"
+	ShopService_DeleteShop_FullMethodName     = "/shoppb.ShopService/DeleteShop"
 )
 
 // ShopServiceClient is the client API for ShopService service.
@@ -30,7 +31,8 @@ const (
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 type ShopServiceClient interface {
 	CreateShop(ctx context.Context, in *CreateShopRequest, opts ...grpc.CallOption) (*CreateShopResponse, error)
-	GetMyShop(ctx context.Context, in *GetMyShopRequest, opts ...grpc.CallOption) (*ShopResponse, error)
+	ListOwnedShops(ctx context.Context, in *ListOwnedShopsRequest, opts ...grpc.CallOption) (*ListShopsResponse, error)
+	ValidateShop(ctx context.Context, in *ValidateShopRequest, opts ...grpc.CallOption) (*ValidateShopResponse, error)
 	UpdateShop(ctx context.Context, in *UpdateShopRequest, opts ...grpc.CallOption) (*ShopResponse, error)
 	DeleteShop(ctx context.Context, in *DeleteShopRequest, opts ...grpc.CallOption) (*DeleteShopResponse, error)
 }
@@ -53,10 +55,20 @@ func (c *shopServiceClient) CreateShop(ctx context.Context, in *CreateShopReques
 	return out, nil
 }
 
-func (c *shopServiceClient) GetMyShop(ctx context.Context, in *GetMyShopRequest, opts ...grpc.CallOption) (*ShopResponse, error) {
+func (c *shopServiceClient) ListOwnedShops(ctx context.Context, in *ListOwnedShopsRequest, opts ...grpc.CallOption) (*ListShopsResponse, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(ShopResponse)
-	err := c.cc.Invoke(ctx, ShopService_GetMyShop_FullMethodName, in, out, cOpts...)
+	out := new(ListShopsResponse)
+	err := c.cc.Invoke(ctx, ShopService_ListOwnedShops_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *shopServiceClient) ValidateShop(ctx context.Context, in *ValidateShopRequest, opts ...grpc.CallOption) (*ValidateShopResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(ValidateShopResponse)
+	err := c.cc.Invoke(ctx, ShopService_ValidateShop_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
 	}
@@ -88,7 +100,8 @@ func (c *shopServiceClient) DeleteShop(ctx context.Context, in *DeleteShopReques
 // for forward compatibility.
 type ShopServiceServer interface {
 	CreateShop(context.Context, *CreateShopRequest) (*CreateShopResponse, error)
-	GetMyShop(context.Context, *GetMyShopRequest) (*ShopResponse, error)
+	ListOwnedShops(context.Context, *ListOwnedShopsRequest) (*ListShopsResponse, error)
+	ValidateShop(context.Context, *ValidateShopRequest) (*ValidateShopResponse, error)
 	UpdateShop(context.Context, *UpdateShopRequest) (*ShopResponse, error)
 	DeleteShop(context.Context, *DeleteShopRequest) (*DeleteShopResponse, error)
 	mustEmbedUnimplementedShopServiceServer()
@@ -104,8 +117,11 @@ type UnimplementedShopServiceServer struct{}
 func (UnimplementedShopServiceServer) CreateShop(context.Context, *CreateShopRequest) (*CreateShopResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method CreateShop not implemented")
 }
-func (UnimplementedShopServiceServer) GetMyShop(context.Context, *GetMyShopRequest) (*ShopResponse, error) {
-	return nil, status.Error(codes.Unimplemented, "method GetMyShop not implemented")
+func (UnimplementedShopServiceServer) ListOwnedShops(context.Context, *ListOwnedShopsRequest) (*ListShopsResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method ListOwnedShops not implemented")
+}
+func (UnimplementedShopServiceServer) ValidateShop(context.Context, *ValidateShopRequest) (*ValidateShopResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method ValidateShop not implemented")
 }
 func (UnimplementedShopServiceServer) UpdateShop(context.Context, *UpdateShopRequest) (*ShopResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method UpdateShop not implemented")
@@ -152,20 +168,38 @@ func _ShopService_CreateShop_Handler(srv interface{}, ctx context.Context, dec f
 	return interceptor(ctx, in, info, handler)
 }
 
-func _ShopService_GetMyShop_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(GetMyShopRequest)
+func _ShopService_ListOwnedShops_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ListOwnedShopsRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(ShopServiceServer).GetMyShop(ctx, in)
+		return srv.(ShopServiceServer).ListOwnedShops(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: ShopService_GetMyShop_FullMethodName,
+		FullMethod: ShopService_ListOwnedShops_FullMethodName,
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(ShopServiceServer).GetMyShop(ctx, req.(*GetMyShopRequest))
+		return srv.(ShopServiceServer).ListOwnedShops(ctx, req.(*ListOwnedShopsRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _ShopService_ValidateShop_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ValidateShopRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ShopServiceServer).ValidateShop(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: ShopService_ValidateShop_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ShopServiceServer).ValidateShop(ctx, req.(*ValidateShopRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -218,8 +252,12 @@ var ShopService_ServiceDesc = grpc.ServiceDesc{
 			Handler:    _ShopService_CreateShop_Handler,
 		},
 		{
-			MethodName: "GetMyShop",
-			Handler:    _ShopService_GetMyShop_Handler,
+			MethodName: "ListOwnedShops",
+			Handler:    _ShopService_ListOwnedShops_Handler,
+		},
+		{
+			MethodName: "ValidateShop",
+			Handler:    _ShopService_ValidateShop_Handler,
 		},
 		{
 			MethodName: "UpdateShop",

@@ -9,11 +9,13 @@ import (
 )
 
 type ShopRepository interface {
+	ValidateShop(ctx context.Context, ownerID string, shopID string) (string, string, error)
+	CountShopsByOwner(ctx context.Context, ownerID string) (int, error)
 	CreateShop(ctx context.Context, shop *dto.ShopDTO) (string, error)
-	GetByOwnerID(ctx context.Context, ownerID string, shopID string) (*dto.ShopDTO, error)
+	ListByShopOwner(ctx context.Context, ownerID string) ([]*dto.ShopDTO, error)
 	GetBySlug(ctx context.Context, slug string) (bool, error)
 	UpdateShop(ctx context.Context, shop *dto.ShopDTO) (*dto.ShopDTO, error)
-	DeleteByOwnerID(ctx context.Context, ownerID string) (int64, error)
+	DeleteByOwnerID(ctx context.Context, ownerID string, shopID string) (int64, error)
 }
 
 type PostgresShopRepository struct {
@@ -30,10 +32,15 @@ func NewPostgresShopRepository(db *sql.DB, logger *slog.Logger) *PostgresShopRep
 
 const (
 	queryShopByOwnerID = `
+		SELECT id, slug
+		FROM shops
+		WHERE owner_id = $1 AND id = $2 AND is_active = TRUE AND deleted_at IS NULL
+	`
+	queryShopsByOwnerID = `
 		SELECT id, owner_id, name, slug, description, logo, is_active, created_at, updated_at
 		FROM shops
-		WHERE owner_id = $1 AND id = $2 AND deleted_at IS NULL
-	`
+		WHERE owner_id = $1 AND deleted_at IS NULL`
+
 	querySlugExists = `
 		SELECT EXISTS (SELECT 1 FROM shops WHERE slug = $1 AND deleted_at IS NULL)
 	`
@@ -44,14 +51,39 @@ const (
 	queryUpdateShop = `
 		UPDATE shops
 		SET name = $1, description = $2, logo = $3, is_active = $4, updated_at = now()
-		WHERE owner_id = $5 AND deleted_at IS NULL
+		WHERE owner_id = $5 AND id = $6 AND deleted_at IS NULL
 		RETURNING id, owner_id, name, slug, description, logo, is_active, created_at, updated_at
 	`
 	queryDeleteShop = `
 		UPDATE shops SET deleted_at = now()
-		WHERE owner_id = $1 AND deleted_at IS NULL
+		WHERE owner_id = $1 AND id = $2 AND deleted_at IS NULL
 	`
 )
+
+func (r *PostgresShopRepository) ValidateShop(ctx context.Context, ownerID string, shopID string) (string, string, error) {
+	row := r.db.QueryRowContext(ctx, queryShopByOwnerID, ownerID, shopID)
+	shop, err := scanShop(row)
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			r.logger.DebugContext(ctx, "shop not found",
+				slog.String("owner_id", ownerID),
+			)
+			return "", "", err
+		}
+		r.logger.ErrorContext(ctx, "failed to query shop",
+			slog.String("owner_id", ownerID),
+			slog.String("error", err.Error()),
+		)
+		return "", "", err
+	}
+	return shop.ID, shop.Slug, nil
+}
+
+func (r *PostgresShopRepository) CountShopsByOwner(ctx context.Context, ownerID string) (int, error) {
+	var count int
+	err := r.db.QueryRowContext(ctx, "SELECT COUNT(*) FROM shops WHERE owner_id = $1", ownerID).Scan(&count)
+	return count, err
+}
 
 func (r *PostgresShopRepository) CreateShop(ctx context.Context, shop *dto.ShopDTO) (string, error) {
 	_, err := r.db.ExecContext(ctx, queryCreateShop,
@@ -73,23 +105,46 @@ func (r *PostgresShopRepository) CreateShop(ctx context.Context, shop *dto.ShopD
 	return shop.ID, nil
 }
 
-func (r *PostgresShopRepository) GetByOwnerID(ctx context.Context, ownerID string, shopID string) (*dto.ShopDTO, error) {
-	row := r.db.QueryRowContext(ctx, queryShopByOwnerID, ownerID, shopID)
-	shop, err := scanShop(row)
+func (r *PostgresShopRepository) ListByShopOwner(ctx context.Context, ownerID string) ([]*dto.ShopDTO, error) {
+	rows, err := r.db.QueryContext(ctx, queryShopsByOwnerID, ownerID)
 	if err != nil {
-		if errors.Is(err, sql.ErrNoRows) {
-			r.logger.DebugContext(ctx, "shop not found",
-				slog.String("owner_id", ownerID),
-			)
-			return nil, err
-		}
-		r.logger.ErrorContext(ctx, "failed to query shop",
+		r.logger.ErrorContext(ctx, "failed to query shops",
 			slog.String("owner_id", ownerID),
 			slog.String("error", err.Error()),
 		)
 		return nil, err
 	}
-	return shop, nil
+	defer rows.Close()
+
+	shops := make([]*dto.ShopDTO, 0)
+
+	for rows.Next() {
+		shop, err := scanShop(rows)
+		if err != nil {
+			r.logger.ErrorContext(ctx, "failed to scan shop row",
+				slog.String("owner_id", ownerID),
+				slog.String("error", err.Error()),
+			)
+			return nil, err
+		}
+		shops = append(shops, shop)
+	}
+
+	if err := rows.Err(); err != nil {
+		r.logger.ErrorContext(ctx, "rows iteration error",
+			slog.String("owner_id", ownerID),
+			slog.String("error", err.Error()),
+		)
+		return nil, err
+	}
+
+	if len(shops) == 0 {
+		r.logger.DebugContext(ctx, "no shops found",
+			slog.String("owner_id", ownerID),
+		)
+	}
+
+	return shops, nil
 }
 
 func (r *PostgresShopRepository) GetBySlug(ctx context.Context, slug string) (bool, error) {
@@ -107,7 +162,7 @@ func (r *PostgresShopRepository) GetBySlug(ctx context.Context, slug string) (bo
 
 func (r *PostgresShopRepository) UpdateShop(ctx context.Context, shop *dto.ShopDTO) (*dto.ShopDTO, error) {
 	row := r.db.QueryRowContext(ctx, queryUpdateShop,
-		shop.Name, nullStr(shop.Description), nullStr(shop.Logo), shop.IsActive, shop.OwnerID,
+		shop.Name, nullStr(shop.Description), nullStr(shop.Logo), shop.IsActive, shop.OwnerID, shop.ShopID,
 	)
 	updated, err := scanShop(row)
 	if err != nil {
@@ -129,8 +184,8 @@ func (r *PostgresShopRepository) UpdateShop(ctx context.Context, shop *dto.ShopD
 	return updated, nil
 }
 
-func (r *PostgresShopRepository) DeleteByOwnerID(ctx context.Context, ownerID string) (int64, error) {
-	res, err := r.db.ExecContext(ctx, queryDeleteShop, ownerID)
+func (r *PostgresShopRepository) DeleteByOwnerID(ctx context.Context, ownerID string, shopID string) (int64, error) {
+	res, err := r.db.ExecContext(ctx, queryDeleteShop, ownerID, shopID)
 	if err != nil {
 		r.logger.ErrorContext(ctx, "failed to delete shop",
 			slog.String("owner_id", ownerID),

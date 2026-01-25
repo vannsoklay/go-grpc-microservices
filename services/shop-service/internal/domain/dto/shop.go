@@ -5,6 +5,7 @@ import "time"
 type ShopDTO struct {
 	ID          string    `json:"id"`
 	OwnerID     string    `json:"owner_id"`
+	ShopID      string    `json:"shop_id"`
 	Name        string    `json:"name"`
 	Slug        string    `json:"slug"`
 	Description *string   `json:"description,omitempty"`

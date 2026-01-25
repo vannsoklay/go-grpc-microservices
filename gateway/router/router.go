@@ -81,9 +81,8 @@ func RegisterShopRoutes(
 	shops.Get(
 		"/me",
 		mdw.AuthMiddleware(clients, authCache),
-		mdw.ShopMiddleware(clients.Shop, shopCache),
 		mdw.PermissionMiddleware("shop:read"),
-		h.GetMyShop,
+		h.ListByShopOwner,
 	)
 
 	// Update my shop

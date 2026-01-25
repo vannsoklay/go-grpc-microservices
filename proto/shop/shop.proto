@@ -8,7 +8,8 @@ import "google/protobuf/timestamp.proto";
 
 service ShopService {
   rpc CreateShop(CreateShopRequest) returns (CreateShopResponse);
-  rpc GetMyShop(GetMyShopRequest) returns (ShopResponse);
+  rpc ListOwnedShops(ListOwnedShopsRequest) returns (ListShopsResponse);
+  rpc ValidateShop(ValidateShopRequest) returns (ValidateShopResponse);
   rpc UpdateShop(UpdateShopRequest) returns (ShopResponse);
   rpc DeleteShop(DeleteShopRequest) returns (DeleteShopResponse);
 }
@@ -25,20 +26,23 @@ message CreateShopResponse {
   google.protobuf.Timestamp created_at = 2;
 }
 
-message GetMyShopRequest {
+message ListOwnedShopsRequest {}
+
+message ListShopsResponse {
+  repeated ShopResponse shops = 1;
+}
+
+message ValidateShopRequest {
   string shop_id = 1;
 }
 
-message UpdateShopRequest {
-  string name = 1;
-  string description = 2;
-  string logo = 3;
-  bool is_active = 4;
+message ValidateShopResponse {
+  string id = 1;
+  string slug = 2;
 }
 
 message ShopResponse {
   string id = 1;
-  string owner_id = 2;
   string name = 3;
   string slug = 4;
   string description = 5;
@@ -49,7 +53,18 @@ message ShopResponse {
   google.protobuf.Timestamp updated_at = 9;
 }
 
-message DeleteShopRequest {}
+
+message UpdateShopRequest {
+  string name = 1;
+  string shop_id = 2;
+  string description = 3;
+  string logo = 4;
+  bool is_active = 5;
+}
+
+message DeleteShopRequest {
+  string shop_id = 1;
+}
 
 message DeleteShopResponse {
   bool success = 1;

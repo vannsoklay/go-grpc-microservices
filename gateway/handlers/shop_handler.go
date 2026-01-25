@@ -2,7 +2,7 @@ package handler
 
 import (
 	"context"
-	"gateway/cache"
+	"fmt"
 	"gateway/grpc"
 	"shopservice/proto/shoppb"
 
@@ -22,9 +22,8 @@ func NewShopHandler(clients *grpc.GRPCClients) *ShopHandler {
 
 func (h *ShopHandler) CreateShop(c fiber.Ctx) error {
 	ctx, ok := c.Locals("ctx").(context.Context)
-	auth, authOk := c.Locals("auth").(*cache.AuthResp)
 
-	if !ok || ctx == nil || !authOk || auth == nil {
+	if !ok || ctx == nil {
 		return responses.Error(c, fiber.StatusUnauthorized, responses.ErrUnauthorizedCode)
 	}
 
@@ -34,6 +33,7 @@ func (h *ShopHandler) CreateShop(c fiber.Ctx) error {
 	}
 
 	resp, err := h.clients.Shop.CreateShop(ctx, &req)
+	fmt.Printf("err %v", err)
 	if err != nil {
 		return responses.FromError(c, err)
 	}
@@ -41,30 +41,25 @@ func (h *ShopHandler) CreateShop(c fiber.Ctx) error {
 	return responses.Success(c, fiber.StatusCreated, resp)
 }
 
-func (h *ShopHandler) GetMyShop(c fiber.Ctx) error {
+func (h *ShopHandler) ListByShopOwner(c fiber.Ctx) error {
 	ctx, ok := c.Locals("ctx").(context.Context)
 
 	if !ok || ctx == nil {
 		return responses.Error(c, fiber.StatusUnauthorized, responses.ErrUnauthorizedCode)
 	}
 
-	shopID, _ := pkg.MustGetShopID(ctx)
-
-	resp, err := h.clients.Shop.GetMyShop(ctx, &shoppb.GetMyShopRequest{
-		ShopId: shopID,
-	})
+	resp, err := h.clients.Shop.ListOwnedShops(ctx, &shoppb.ListOwnedShopsRequest{})
 	if err != nil {
 		return responses.FromError(c, err)
 	}
 
-	return responses.Success(c, fiber.StatusOK, resp)
+	return responses.Success(c, fiber.StatusOK, resp.Shops)
 }
 
 func (h *ShopHandler) UpdateShop(c fiber.Ctx) error {
 	ctx, ok := c.Locals("ctx").(context.Context)
-	auth, authOk := c.Locals("auth").(*cache.AuthResp)
-
-	if !ok || ctx == nil || !authOk || auth == nil {
+	shopID, _ := pkg.MustGetShopID(ctx)
+	if !ok || ctx == nil {
 		return responses.Error(c, fiber.StatusUnauthorized, responses.ErrUnauthorizedCode)
 	}
 
@@ -72,6 +67,7 @@ func (h *ShopHandler) UpdateShop(c fiber.Ctx) error {
 	if err := c.Bind().Body(&req); err != nil {
 		return responses.Error(c, fiber.StatusBadRequest, responses.ErrInvalidPayloadCode)
 	}
+	req.ShopId = shopID
 
 	resp, err := h.clients.Shop.UpdateShop(ctx, &req)
 	if err != nil {
@@ -83,13 +79,14 @@ func (h *ShopHandler) UpdateShop(c fiber.Ctx) error {
 
 func (h *ShopHandler) DeleteShop(c fiber.Ctx) error {
 	ctx, ok := c.Locals("ctx").(context.Context)
-	auth, authOk := c.Locals("auth").(*cache.AuthResp)
 
-	if !ok || ctx == nil || !authOk || auth == nil {
+	if !ok || ctx == nil {
 		return responses.Error(c, fiber.StatusUnauthorized, responses.ErrUnauthorizedCode)
 	}
-
-	resp, err := h.clients.Shop.DeleteShop(ctx, &shoppb.DeleteShopRequest{})
+	shopID, _ := pkg.MustGetShopID(ctx)
+	resp, err := h.clients.Shop.DeleteShop(ctx, &shoppb.DeleteShopRequest{
+		ShopId: shopID,
+	})
 	if err != nil {
 		return responses.FromError(c, err)
 	}

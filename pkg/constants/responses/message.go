@@ -34,6 +34,9 @@ const (
 
 	ShopNotFoundCode = "SHOP_NOT_FOUND"
 	ShopNotFoundMsg  = "The requested shop was not found"
+
+	ShopLimitExceededCode = "SHOP_LIMIT_EXCEEDED"
+	ShopLimitExceededMsg  = "You can only create up to 2 shops"
 )
 
 // ===== Validation Errors =====

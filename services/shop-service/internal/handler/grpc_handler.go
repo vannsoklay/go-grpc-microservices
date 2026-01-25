@@ -15,12 +15,16 @@ func NewShopHandler(svc *service.ShopService) *ShopHandler {
 	return &ShopHandler{svc: svc}
 }
 
+func (h *ShopHandler) ValidateShop(ctx context.Context, req *shoppb.ValidateShopRequest) (*shoppb.ValidateShopResponse, error) {
+	return h.svc.ValidateShop(ctx, req)
+}
+
 func (h *ShopHandler) CreateShop(ctx context.Context, req *shoppb.CreateShopRequest) (*shoppb.CreateShopResponse, error) {
 	return h.svc.CreateShop(ctx, req)
 }
 
-func (h *ShopHandler) GetMyShop(ctx context.Context, req *shoppb.GetMyShopRequest) (*shoppb.ShopResponse, error) {
-	return h.svc.GetMyShop(ctx, req)
+func (h *ShopHandler) ListOwnedShops(ctx context.Context, req *shoppb.ListOwnedShopsRequest) (*shoppb.ListShopsResponse, error) {
+	return h.svc.ListOwnedShops(ctx, req)
 }
 
 func (h *ShopHandler) UpdateShop(ctx context.Context, req *shoppb.UpdateShopRequest) (*shoppb.ShopResponse, error) {

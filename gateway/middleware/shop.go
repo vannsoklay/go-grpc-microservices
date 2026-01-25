@@ -44,7 +44,7 @@ func ShopMiddleware(
 		}
 
 		// --- 5. Validate shop via shop-service ---
-		shopResp, err := shopClient.GetMyShop(ctx, &shoppb.GetMyShopRequest{
+		shopResp, err := shopClient.ValidateShop(ctx, &shoppb.ValidateShopRequest{
 			ShopId: shopID,
 		})
 

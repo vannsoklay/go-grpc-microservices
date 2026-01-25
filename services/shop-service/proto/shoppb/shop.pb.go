@@ -142,28 +142,108 @@ func (x *CreateShopResponse) GetCreatedAt() *timestamppb.Timestamp {
 	return nil
 }
 
-type GetMyShopRequest struct {
+type ListOwnedShopsRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *ListOwnedShopsRequest) Reset() {
+	*x = ListOwnedShopsRequest{}
+	mi := &file_shop_shop_proto_msgTypes[2]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ListOwnedShopsRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ListOwnedShopsRequest) ProtoMessage() {}
+
+func (x *ListOwnedShopsRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_shop_shop_proto_msgTypes[2]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ListOwnedShopsRequest.ProtoReflect.Descriptor instead.
+func (*ListOwnedShopsRequest) Descriptor() ([]byte, []int) {
+	return file_shop_shop_proto_rawDescGZIP(), []int{2}
+}
+
+type ListShopsResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Shops         []*ShopResponse        `protobuf:"bytes,1,rep,name=shops,proto3" json:"shops,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *ListShopsResponse) Reset() {
+	*x = ListShopsResponse{}
+	mi := &file_shop_shop_proto_msgTypes[3]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ListShopsResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ListShopsResponse) ProtoMessage() {}
+
+func (x *ListShopsResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_shop_shop_proto_msgTypes[3]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ListShopsResponse.ProtoReflect.Descriptor instead.
+func (*ListShopsResponse) Descriptor() ([]byte, []int) {
+	return file_shop_shop_proto_rawDescGZIP(), []int{3}
+}
+
+func (x *ListShopsResponse) GetShops() []*ShopResponse {
+	if x != nil {
+		return x.Shops
+	}
+	return nil
+}
+
+type ValidateShopRequest struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	ShopId        string                 `protobuf:"bytes,1,opt,name=shop_id,json=shopId,proto3" json:"shop_id,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
 
-func (x *GetMyShopRequest) Reset() {
-	*x = GetMyShopRequest{}
-	mi := &file_shop_shop_proto_msgTypes[2]
+func (x *ValidateShopRequest) Reset() {
+	*x = ValidateShopRequest{}
+	mi := &file_shop_shop_proto_msgTypes[4]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
 
-func (x *GetMyShopRequest) String() string {
+func (x *ValidateShopRequest) String() string {
 	return protoimpl.X.MessageStringOf(x)
 }
 
-func (*GetMyShopRequest) ProtoMessage() {}
+func (*ValidateShopRequest) ProtoMessage() {}
 
-func (x *GetMyShopRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_shop_shop_proto_msgTypes[2]
+func (x *ValidateShopRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_shop_shop_proto_msgTypes[4]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -174,43 +254,41 @@ func (x *GetMyShopRequest) ProtoReflect() protoreflect.Message {
 	return mi.MessageOf(x)
 }
 
-// Deprecated: Use GetMyShopRequest.ProtoReflect.Descriptor instead.
-func (*GetMyShopRequest) Descriptor() ([]byte, []int) {
-	return file_shop_shop_proto_rawDescGZIP(), []int{2}
+// Deprecated: Use ValidateShopRequest.ProtoReflect.Descriptor instead.
+func (*ValidateShopRequest) Descriptor() ([]byte, []int) {
+	return file_shop_shop_proto_rawDescGZIP(), []int{4}
 }
 
-func (x *GetMyShopRequest) GetShopId() string {
+func (x *ValidateShopRequest) GetShopId() string {
 	if x != nil {
 		return x.ShopId
 	}
 	return ""
 }
 
-type UpdateShopRequest struct {
+type ValidateShopResponse struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
-	Name          string                 `protobuf:"bytes,1,opt,name=name,proto3" json:"name,omitempty"`
-	Description   string                 `protobuf:"bytes,2,opt,name=description,proto3" json:"description,omitempty"`
-	Logo          string                 `protobuf:"bytes,3,opt,name=logo,proto3" json:"logo,omitempty"`
-	IsActive      bool                   `protobuf:"varint,4,opt,name=is_active,json=isActive,proto3" json:"is_active,omitempty"`
+	Id            string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
+	Slug          string                 `protobuf:"bytes,2,opt,name=slug,proto3" json:"slug,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
 
-func (x *UpdateShopRequest) Reset() {
-	*x = UpdateShopRequest{}
-	mi := &file_shop_shop_proto_msgTypes[3]
+func (x *ValidateShopResponse) Reset() {
+	*x = ValidateShopResponse{}
+	mi := &file_shop_shop_proto_msgTypes[5]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
 
-func (x *UpdateShopRequest) String() string {
+func (x *ValidateShopResponse) String() string {
 	return protoimpl.X.MessageStringOf(x)
 }
 
-func (*UpdateShopRequest) ProtoMessage() {}
+func (*ValidateShopResponse) ProtoMessage() {}
 
-func (x *UpdateShopRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_shop_shop_proto_msgTypes[3]
+func (x *ValidateShopResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_shop_shop_proto_msgTypes[5]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -221,43 +299,28 @@ func (x *UpdateShopRequest) ProtoReflect() protoreflect.Message {
 	return mi.MessageOf(x)
 }
 
-// Deprecated: Use UpdateShopRequest.ProtoReflect.Descriptor instead.
-func (*UpdateShopRequest) Descriptor() ([]byte, []int) {
-	return file_shop_shop_proto_rawDescGZIP(), []int{3}
+// Deprecated: Use ValidateShopResponse.ProtoReflect.Descriptor instead.
+func (*ValidateShopResponse) Descriptor() ([]byte, []int) {
+	return file_shop_shop_proto_rawDescGZIP(), []int{5}
 }
 
-func (x *UpdateShopRequest) GetName() string {
+func (x *ValidateShopResponse) GetId() string {
 	if x != nil {
-		return x.Name
+		return x.Id
 	}
 	return ""
 }
 
-func (x *UpdateShopRequest) GetDescription() string {
+func (x *ValidateShopResponse) GetSlug() string {
 	if x != nil {
-		return x.Description
+		return x.Slug
 	}
 	return ""
-}
-
-func (x *UpdateShopRequest) GetLogo() string {
-	if x != nil {
-		return x.Logo
-	}
-	return ""
-}
-
-func (x *UpdateShopRequest) GetIsActive() bool {
-	if x != nil {
-		return x.IsActive
-	}
-	return false
 }
 
 type ShopResponse struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Id            string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
-	OwnerId       string                 `protobuf:"bytes,2,opt,name=owner_id,json=ownerId,proto3" json:"owner_id,omitempty"`
 	Name          string                 `protobuf:"bytes,3,opt,name=name,proto3" json:"name,omitempty"`
 	Slug          string                 `protobuf:"bytes,4,opt,name=slug,proto3" json:"slug,omitempty"`
 	Description   string                 `protobuf:"bytes,5,opt,name=description,proto3" json:"description,omitempty"`
@@ -271,7 +334,7 @@ type ShopResponse struct {
 
 func (x *ShopResponse) Reset() {
 	*x = ShopResponse{}
-	mi := &file_shop_shop_proto_msgTypes[4]
+	mi := &file_shop_shop_proto_msgTypes[6]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -283,7 +346,7 @@ func (x *ShopResponse) String() string {
 func (*ShopResponse) ProtoMessage() {}
 
 func (x *ShopResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_shop_shop_proto_msgTypes[4]
+	mi := &file_shop_shop_proto_msgTypes[6]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -296,19 +359,12 @@ func (x *ShopResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ShopResponse.ProtoReflect.Descriptor instead.
 func (*ShopResponse) Descriptor() ([]byte, []int) {
-	return file_shop_shop_proto_rawDescGZIP(), []int{4}
+	return file_shop_shop_proto_rawDescGZIP(), []int{6}
 }
 
 func (x *ShopResponse) GetId() string {
 	if x != nil {
 		return x.Id
-	}
-	return ""
-}
-
-func (x *ShopResponse) GetOwnerId() string {
-	if x != nil {
-		return x.OwnerId
 	}
 	return ""
 }
@@ -362,15 +418,92 @@ func (x *ShopResponse) GetUpdatedAt() *timestamppb.Timestamp {
 	return nil
 }
 
+type UpdateShopRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Name          string                 `protobuf:"bytes,1,opt,name=name,proto3" json:"name,omitempty"`
+	ShopId        string                 `protobuf:"bytes,2,opt,name=shop_id,json=shopId,proto3" json:"shop_id,omitempty"`
+	Description   string                 `protobuf:"bytes,3,opt,name=description,proto3" json:"description,omitempty"`
+	Logo          string                 `protobuf:"bytes,4,opt,name=logo,proto3" json:"logo,omitempty"`
+	IsActive      bool                   `protobuf:"varint,5,opt,name=is_active,json=isActive,proto3" json:"is_active,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *UpdateShopRequest) Reset() {
+	*x = UpdateShopRequest{}
+	mi := &file_shop_shop_proto_msgTypes[7]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *UpdateShopRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*UpdateShopRequest) ProtoMessage() {}
+
+func (x *UpdateShopRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_shop_shop_proto_msgTypes[7]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use UpdateShopRequest.ProtoReflect.Descriptor instead.
+func (*UpdateShopRequest) Descriptor() ([]byte, []int) {
+	return file_shop_shop_proto_rawDescGZIP(), []int{7}
+}
+
+func (x *UpdateShopRequest) GetName() string {
+	if x != nil {
+		return x.Name
+	}
+	return ""
+}
+
+func (x *UpdateShopRequest) GetShopId() string {
+	if x != nil {
+		return x.ShopId
+	}
+	return ""
+}
+
+func (x *UpdateShopRequest) GetDescription() string {
+	if x != nil {
+		return x.Description
+	}
+	return ""
+}
+
+func (x *UpdateShopRequest) GetLogo() string {
+	if x != nil {
+		return x.Logo
+	}
+	return ""
+}
+
+func (x *UpdateShopRequest) GetIsActive() bool {
+	if x != nil {
+		return x.IsActive
+	}
+	return false
+}
+
 type DeleteShopRequest struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
+	ShopId        string                 `protobuf:"bytes,1,opt,name=shop_id,json=shopId,proto3" json:"shop_id,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
 
 func (x *DeleteShopRequest) Reset() {
 	*x = DeleteShopRequest{}
-	mi := &file_shop_shop_proto_msgTypes[5]
+	mi := &file_shop_shop_proto_msgTypes[8]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -382,7 +515,7 @@ func (x *DeleteShopRequest) String() string {
 func (*DeleteShopRequest) ProtoMessage() {}
 
 func (x *DeleteShopRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_shop_shop_proto_msgTypes[5]
+	mi := &file_shop_shop_proto_msgTypes[8]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -395,7 +528,14 @@ func (x *DeleteShopRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use DeleteShopRequest.ProtoReflect.Descriptor instead.
 func (*DeleteShopRequest) Descriptor() ([]byte, []int) {
-	return file_shop_shop_proto_rawDescGZIP(), []int{5}
+	return file_shop_shop_proto_rawDescGZIP(), []int{8}
+}
+
+func (x *DeleteShopRequest) GetShopId() string {
+	if x != nil {
+		return x.ShopId
+	}
+	return ""
 }
 
 type DeleteShopResponse struct {
@@ -407,7 +547,7 @@ type DeleteShopResponse struct {
 
 func (x *DeleteShopResponse) Reset() {
 	*x = DeleteShopResponse{}
-	mi := &file_shop_shop_proto_msgTypes[6]
+	mi := &file_shop_shop_proto_msgTypes[9]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -419,7 +559,7 @@ func (x *DeleteShopResponse) String() string {
 func (*DeleteShopResponse) ProtoMessage() {}
 
 func (x *DeleteShopResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_shop_shop_proto_msgTypes[6]
+	mi := &file_shop_shop_proto_msgTypes[9]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -432,7 +572,7 @@ func (x *DeleteShopResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use DeleteShopResponse.ProtoReflect.Descriptor instead.
 func (*DeleteShopResponse) Descriptor() ([]byte, []int) {
-	return file_shop_shop_proto_rawDescGZIP(), []int{6}
+	return file_shop_shop_proto_rawDescGZIP(), []int{9}
 }
 
 func (x *DeleteShopResponse) GetSuccess() bool {
@@ -455,17 +595,17 @@ const file_shop_shop_proto_rawDesc = "" +
 	"\x12CreateShopResponse\x12\x17\n" +
 	"\ashop_id\x18\x01 \x01(\tR\x06shopId\x129\n" +
 	"\n" +
-	"created_at\x18\x02 \x01(\v2\x1a.google.protobuf.TimestampR\tcreatedAt\"+\n" +
-	"\x10GetMyShopRequest\x12\x17\n" +
-	"\ashop_id\x18\x01 \x01(\tR\x06shopId\"z\n" +
-	"\x11UpdateShopRequest\x12\x12\n" +
-	"\x04name\x18\x01 \x01(\tR\x04name\x12 \n" +
-	"\vdescription\x18\x02 \x01(\tR\vdescription\x12\x12\n" +
-	"\x04logo\x18\x03 \x01(\tR\x04logo\x12\x1b\n" +
-	"\tis_active\x18\x04 \x01(\bR\bisActive\"\xaa\x02\n" +
+	"created_at\x18\x02 \x01(\v2\x1a.google.protobuf.TimestampR\tcreatedAt\"\x17\n" +
+	"\x15ListOwnedShopsRequest\"?\n" +
+	"\x11ListShopsResponse\x12*\n" +
+	"\x05shops\x18\x01 \x03(\v2\x14.shoppb.ShopResponseR\x05shops\".\n" +
+	"\x13ValidateShopRequest\x12\x17\n" +
+	"\ashop_id\x18\x01 \x01(\tR\x06shopId\":\n" +
+	"\x14ValidateShopResponse\x12\x0e\n" +
+	"\x02id\x18\x01 \x01(\tR\x02id\x12\x12\n" +
+	"\x04slug\x18\x02 \x01(\tR\x04slug\"\x8f\x02\n" +
 	"\fShopResponse\x12\x0e\n" +
-	"\x02id\x18\x01 \x01(\tR\x02id\x12\x19\n" +
-	"\bowner_id\x18\x02 \x01(\tR\aownerId\x12\x12\n" +
+	"\x02id\x18\x01 \x01(\tR\x02id\x12\x12\n" +
 	"\x04name\x18\x03 \x01(\tR\x04name\x12\x12\n" +
 	"\x04slug\x18\x04 \x01(\tR\x04slug\x12 \n" +
 	"\vdescription\x18\x05 \x01(\tR\vdescription\x12\x12\n" +
@@ -474,14 +614,22 @@ const file_shop_shop_proto_rawDesc = "" +
 	"\n" +
 	"created_at\x18\b \x01(\v2\x1a.google.protobuf.TimestampR\tcreatedAt\x129\n" +
 	"\n" +
-	"updated_at\x18\t \x01(\v2\x1a.google.protobuf.TimestampR\tupdatedAt\"\x13\n" +
-	"\x11DeleteShopRequest\".\n" +
+	"updated_at\x18\t \x01(\v2\x1a.google.protobuf.TimestampR\tupdatedAt\"\x93\x01\n" +
+	"\x11UpdateShopRequest\x12\x12\n" +
+	"\x04name\x18\x01 \x01(\tR\x04name\x12\x17\n" +
+	"\ashop_id\x18\x02 \x01(\tR\x06shopId\x12 \n" +
+	"\vdescription\x18\x03 \x01(\tR\vdescription\x12\x12\n" +
+	"\x04logo\x18\x04 \x01(\tR\x04logo\x12\x1b\n" +
+	"\tis_active\x18\x05 \x01(\bR\bisActive\",\n" +
+	"\x11DeleteShopRequest\x12\x17\n" +
+	"\ashop_id\x18\x01 \x01(\tR\x06shopId\".\n" +
 	"\x12DeleteShopResponse\x12\x18\n" +
-	"\asuccess\x18\x01 \x01(\bR\asuccess2\x93\x02\n" +
+	"\asuccess\x18\x01 \x01(\bR\asuccess2\xed\x02\n" +
 	"\vShopService\x12C\n" +
 	"\n" +
-	"CreateShop\x12\x19.shoppb.CreateShopRequest\x1a\x1a.shoppb.CreateShopResponse\x12;\n" +
-	"\tGetMyShop\x12\x18.shoppb.GetMyShopRequest\x1a\x14.shoppb.ShopResponse\x12=\n" +
+	"CreateShop\x12\x19.shoppb.CreateShopRequest\x1a\x1a.shoppb.CreateShopResponse\x12J\n" +
+	"\x0eListOwnedShops\x12\x1d.shoppb.ListOwnedShopsRequest\x1a\x19.shoppb.ListShopsResponse\x12I\n" +
+	"\fValidateShop\x12\x1b.shoppb.ValidateShopRequest\x1a\x1c.shoppb.ValidateShopResponse\x12=\n" +
 	"\n" +
 	"UpdateShop\x12\x19.shoppb.UpdateShopRequest\x1a\x14.shoppb.ShopResponse\x12C\n" +
 	"\n" +
@@ -499,34 +647,40 @@ func file_shop_shop_proto_rawDescGZIP() []byte {
 	return file_shop_shop_proto_rawDescData
 }
 
-var file_shop_shop_proto_msgTypes = make([]protoimpl.MessageInfo, 7)
+var file_shop_shop_proto_msgTypes = make([]protoimpl.MessageInfo, 10)
 var file_shop_shop_proto_goTypes = []any{
 	(*CreateShopRequest)(nil),     // 0: shoppb.CreateShopRequest
 	(*CreateShopResponse)(nil),    // 1: shoppb.CreateShopResponse
-	(*GetMyShopRequest)(nil),      // 2: shoppb.GetMyShopRequest
-	(*UpdateShopRequest)(nil),     // 3: shoppb.UpdateShopRequest
-	(*ShopResponse)(nil),          // 4: shoppb.ShopResponse
-	(*DeleteShopRequest)(nil),     // 5: shoppb.DeleteShopRequest
-	(*DeleteShopResponse)(nil),    // 6: shoppb.DeleteShopResponse
-	(*timestamppb.Timestamp)(nil), // 7: google.protobuf.Timestamp
+	(*ListOwnedShopsRequest)(nil), // 2: shoppb.ListOwnedShopsRequest
+	(*ListShopsResponse)(nil),     // 3: shoppb.ListShopsResponse
+	(*ValidateShopRequest)(nil),   // 4: shoppb.ValidateShopRequest
+	(*ValidateShopResponse)(nil),  // 5: shoppb.ValidateShopResponse
+	(*ShopResponse)(nil),          // 6: shoppb.ShopResponse
+	(*UpdateShopRequest)(nil),     // 7: shoppb.UpdateShopRequest
+	(*DeleteShopRequest)(nil),     // 8: shoppb.DeleteShopRequest
+	(*DeleteShopResponse)(nil),    // 9: shoppb.DeleteShopResponse
+	(*timestamppb.Timestamp)(nil), // 10: google.protobuf.Timestamp
 }
 var file_shop_shop_proto_depIdxs = []int32{
-	7, // 0: shoppb.CreateShopResponse.created_at:type_name -> google.protobuf.Timestamp
-	7, // 1: shoppb.ShopResponse.created_at:type_name -> google.protobuf.Timestamp
-	7, // 2: shoppb.ShopResponse.updated_at:type_name -> google.protobuf.Timestamp
-	0, // 3: shoppb.ShopService.CreateShop:input_type -> shoppb.CreateShopRequest
-	2, // 4: shoppb.ShopService.GetMyShop:input_type -> shoppb.GetMyShopRequest
-	3, // 5: shoppb.ShopService.UpdateShop:input_type -> shoppb.UpdateShopRequest
-	5, // 6: shoppb.ShopService.DeleteShop:input_type -> shoppb.DeleteShopRequest
-	1, // 7: shoppb.ShopService.CreateShop:output_type -> shoppb.CreateShopResponse
-	4, // 8: shoppb.ShopService.GetMyShop:output_type -> shoppb.ShopResponse
-	4, // 9: shoppb.ShopService.UpdateShop:output_type -> shoppb.ShopResponse
-	6, // 10: shoppb.ShopService.DeleteShop:output_type -> shoppb.DeleteShopResponse
-	7, // [7:11] is the sub-list for method output_type
-	3, // [3:7] is the sub-list for method input_type
-	3, // [3:3] is the sub-list for extension type_name
-	3, // [3:3] is the sub-list for extension extendee
-	0, // [0:3] is the sub-list for field type_name
+	10, // 0: shoppb.CreateShopResponse.created_at:type_name -> google.protobuf.Timestamp
+	6,  // 1: shoppb.ListShopsResponse.shops:type_name -> shoppb.ShopResponse
+	10, // 2: shoppb.ShopResponse.created_at:type_name -> google.protobuf.Timestamp
+	10, // 3: shoppb.ShopResponse.updated_at:type_name -> google.protobuf.Timestamp
+	0,  // 4: shoppb.ShopService.CreateShop:input_type -> shoppb.CreateShopRequest
+	2,  // 5: shoppb.ShopService.ListOwnedShops:input_type -> shoppb.ListOwnedShopsRequest
+	4,  // 6: shoppb.ShopService.ValidateShop:input_type -> shoppb.ValidateShopRequest
+	7,  // 7: shoppb.ShopService.UpdateShop:input_type -> shoppb.UpdateShopRequest
+	8,  // 8: shoppb.ShopService.DeleteShop:input_type -> shoppb.DeleteShopRequest
+	1,  // 9: shoppb.ShopService.CreateShop:output_type -> shoppb.CreateShopResponse
+	3,  // 10: shoppb.ShopService.ListOwnedShops:output_type -> shoppb.ListShopsResponse
+	5,  // 11: shoppb.ShopService.ValidateShop:output_type -> shoppb.ValidateShopResponse
+	6,  // 12: shoppb.ShopService.UpdateShop:output_type -> shoppb.ShopResponse
+	9,  // 13: shoppb.ShopService.DeleteShop:output_type -> shoppb.DeleteShopResponse
+	9,  // [9:14] is the sub-list for method output_type
+	4,  // [4:9] is the sub-list for method input_type
+	4,  // [4:4] is the sub-list for extension type_name
+	4,  // [4:4] is the sub-list for extension extendee
+	0,  // [0:4] is the sub-list for field type_name
 }
 
 func init() { file_shop_shop_proto_init() }
@@ -540,7 +694,7 @@ func file_shop_shop_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_shop_shop_proto_rawDesc), len(file_shop_shop_proto_rawDesc)),
 			NumEnums:      0,
-			NumMessages:   7,
+			NumMessages:   10,
 			NumExtensions: 0,
 			NumServices:   1,
 		},
