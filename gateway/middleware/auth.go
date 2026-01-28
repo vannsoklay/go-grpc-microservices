@@ -19,12 +19,12 @@ func AuthMiddleware(client *grpc.GRPCClients, authCache *cache.AuthCache) fiber.
 	return func(c fiber.Ctx) error {
 		header := c.Get("Authorization")
 		if header == "" {
-			return errors.Error(c, fiber.StatusUnauthorized, errors.ErrAuthHeaderMissingCode)
+			return errors.Error(c, fiber.StatusUnauthorized, errors.ErrAuthHeaderMissingCode, errors.ErrAuthHeaderMissingMsg)
 		}
 
 		token := strings.TrimPrefix(header, "Bearer ")
 		if token == "" {
-			return errors.Error(c, fiber.StatusUnauthorized, errors.ErrTokenInvalidCode)
+			return errors.Error(c, fiber.StatusUnauthorized, errors.ErrTokenInvalidCode, errors.ErrTokenInvalidMsg)
 		}
 
 		ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
@@ -43,7 +43,7 @@ func AuthMiddleware(client *grpc.GRPCClients, authCache *cache.AuthCache) fiber.
 			})
 
 			if err != nil {
-				return errors.Error(c, fiber.StatusUnauthorized, errors.ErrTokenExpiredCode)
+				return errors.Error(c, fiber.StatusUnauthorized, errors.ErrTokenExpiredCode, errors.ErrTokenExpiredMsg)
 			}
 
 			authResp = &cache.AuthResp{
