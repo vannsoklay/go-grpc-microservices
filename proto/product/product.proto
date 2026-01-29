@@ -17,9 +17,10 @@ message Product {
   string name = 4;
   string category = 5;
   double price = 6;
-  google.protobuf.StringValue detail = 7;
-  google.protobuf.Timestamp created_at = 8;
-  google.protobuf.Timestamp updated_at = 9;
+  string description = 7;
+  google.protobuf.StringValue detail = 8;
+  google.protobuf.Timestamp created_at = 9;
+  google.protobuf.Timestamp updated_at = 10;
 }
 
 // =====================
@@ -30,6 +31,8 @@ message CreateProductRequest {
   string name = 1;
   double price = 2;
   string description = 3;
+  string detail = 4;
+  string category = 5;
 }
 
 message CreateProductResponse {
@@ -58,6 +61,7 @@ message UpdateProductRequest {
   double price = 3;
   string description = 4;
   string category = 5;
+  string detail = 6;
 }
 
 message UpdateProductResponse {

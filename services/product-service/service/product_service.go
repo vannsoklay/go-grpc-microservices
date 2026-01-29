@@ -4,15 +4,13 @@ import (
 	"context"
 	"fmt"
 
-	"hpkg/grpc"
-	ctxkey "hpkg/grpc"
+	pkg "hpkg/grpc"
+
 	"productservice/domain"
+	"productservice/domain/proto"
 	"productservice/proto/productpb"
 	"productservice/repository"
 
-	"google.golang.org/grpc/codes"
-	"google.golang.org/grpc/status"
-	"google.golang.org/protobuf/types/known/timestamppb"
 	"google.golang.org/protobuf/types/known/wrapperspb"
 )
 
@@ -24,39 +22,6 @@ type ProductService struct {
 func NewProductService(repo repository.PostgresProductRepository) *ProductService {
 	return &ProductService{
 		repo: repo,
-	}
-}
-
-func MustGetShopID(ctx context.Context) (string, error) {
-	shopID, ok := ctx.Value(ctxkey.ShopIDKey).(string)
-	fmt.Printf("shop id %v", shopID)
-	if !ok {
-		return "", status.Error(codes.Unauthenticated, "shop not authenticated")
-	}
-
-	return shopID, nil
-}
-
-// ---------------------------
-// Helper: Map Domain → Proto
-// ---------------------------
-func mapDomainToProto(p *domain.Product) *productpb.Product {
-	var detail *wrapperspb.StringValue
-	if p.Detail != nil {
-		detail = wrapperspb.String(*p.Detail)
-	} else {
-		detail = &wrapperspb.StringValue{Value: ""}
-	}
-
-	return &productpb.Product{
-		Id:        p.ID,
-		ShopId:    p.ShopID,
-		Name:      p.Name,
-		Category:  p.Category,
-		Price:     p.Price,
-		Detail:    detail,
-		CreatedAt: timestamppb.New(p.CreatedAt),
-		UpdatedAt: timestamppb.New(p.UpdatedAt),
 	}
 }
 
@@ -87,12 +52,10 @@ func (s *ProductService) ListProductsByShop(
 		sortDesc = true
 	}
 
-	shopID, err := MustGetShopID(ctx)
+	shopID, err := pkg.MustGetShopID(ctx)
 	if err != nil {
 		return nil, err
 	}
-
-	fmt.Printf("shop id %v", shopID)
 
 	products, nextCursor, err := s.repo.ListByShopID(ctx, shopID, req.Search, req.Filter, sortColumn, sortDesc, int(req.Limit), req.Cursor)
 	if err != nil {
@@ -104,7 +67,7 @@ func (s *ProductService) ListProductsByShop(
 	}
 
 	for _, p := range products {
-		resp.Products = append(resp.Products, mapDomainToProto(p))
+		resp.Products = append(resp.Products, proto.MapProductToProto(p))
 	}
 
 	if nextCursor != "" {
@@ -125,7 +88,7 @@ func (s *ProductService) GetProductByID(
 ) (*productpb.GetProductResponse, error) {
 
 	// Retrieve shop_id from context (child context works too)
-	shopID, err := MustGetShopID(ctx)
+	shopID, err := pkg.MustGetShopID(ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -138,7 +101,7 @@ func (s *ProductService) GetProductByID(
 	}
 
 	return &productpb.GetProductResponse{
-		Product: mapDomainToProto(product),
+		Product: proto.MapProductToProto(product),
 	}, nil
 }
 
@@ -150,28 +113,25 @@ func (s *ProductService) CreateProduct(
 	req *productpb.CreateProductRequest,
 ) (*productpb.CreateProductResponse, error) {
 
-	userID, err := grpc.MustGetUserID(ctx)
-	if err != nil {
-		return nil, err
-	}
-
-	fmt.Printf("Creating product for userID: %v\n", userID)
+	userID, _ := pkg.MustGetUserID(ctx)
+	shopID, _ := pkg.MustGetShopID(ctx)
 
 	product, err := s.repo.Create(ctx, domain.CreateProductRequest{
-		ShopID:      "6671d2a0-c585-4410-af40-cea0bb305ff8",
+		ShopID:      shopID,
 		OwnerID:     userID,
 		Name:        req.Name,
 		Description: req.Description,
-		Category:    "category-new1",
+		Category:    req.Category,
 		Price:       req.Price,
-		Detail:      req.Description,
+		Detail:      req.Detail,
 	})
+
 	if err != nil {
 		return nil, err
 	}
 
 	return &productpb.CreateProductResponse{
-		Product: mapDomainToProto(product),
+		Product: proto.MapProductToProto(product),
 	}, nil
 }
 
@@ -185,11 +145,12 @@ func (s *ProductService) UpdateProduct(
 
 	// Map gRPC request to domain update
 	updateReq := domain.UpdateProductRequest{
-		ID:       req.ProductId,
-		Name:     req.Name,
-		Category: req.Category,
-		Price:    req.Price,
-		Detail:   "detail update",
+		ID:          req.ProductId,
+		Name:        req.Name,
+		Category:    req.Category,
+		Price:       req.Price,
+		Description: req.Description,
+		Detail:      req.Detail,
 	}
 
 	product, err := s.repo.Update(ctx, updateReq)
@@ -198,7 +159,7 @@ func (s *ProductService) UpdateProduct(
 	}
 
 	return &productpb.UpdateProductResponse{
-		Product: mapDomainToProto(product),
+		Product: proto.MapProductToProto(product),
 	}, nil
 }
 

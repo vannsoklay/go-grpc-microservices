@@ -6,7 +6,7 @@ const (
 	ErrAuthHeaderMissingMsg  = "Authorization header is required"
 
 	ErrTokenInvalidCode = "TOKEN_INVALID"
-	ErrTokenInvalidMsg  = "Invalid or malformed authorization token"
+	ErrTokenInvalidMsg  = "Invalid token"
 
 	ErrTokenExpiredCode = "TOKEN_EXPIRED"
 	ErrTokenExpiredMsg  = "Your authentication token has expired. Please log in again"
@@ -22,6 +22,38 @@ const (
 
 	ErrServiceUnavailableCode = "SERVICE_UNAVAILABLE"
 	ErrServiceUnavailableMsg  = "The service is temporarily unavailable. Please try again later"
+
+	ErrInvalidCredentialsCode = "INVALID_CREDENTIALS"
+	ErrInvalidCredentialsMsg  = "Invalid email or password"
+
+	ErrUserCreateFailedCode = "USER_CREATE_FAILED"
+	ErrUserCreateFailedMsg  = "Failed to create user"
+
+	TokenGenerateFailedCode       = "TOKEN_GENERATE_FAILED"
+	AccessTokenGenerateFailedMsg  = "Failed to generate access token"
+	RefreshTokenGenerateFailedMsg = "Failed to generate refresh token"
+)
+
+// ===== user Errors =====
+
+const (
+	UserNotFoundCode         = "USER_NOT_FOUND"
+	UserFetchFailedCode      = "USER_FETCH_FAILED"
+	UsernameExistsCode       = "USERNAME_EXISTS"
+	UsernameUpdateFailedCode = "USERNAME_UPDATE_FAILED"
+	UsernameCheckFailedCode  = "USERNAME_CHECK_FAILED"
+	InvalidRequestCode       = "INVALID_REQUEST"
+	UnauthenticatedCode      = "UNAUTHENTICATED"
+	RequestCanceledCode      = "REQUEST_CANCELED"
+
+	UserNotFoundMsg         = "User not found"
+	UserFetchFailedMsg      = "Failed to fetch user"
+	UsernameExistsMsg       = "Username already exists"
+	UsernameUpdateFailedMsg = "Failed to update username"
+	UsernameCheckFailedMsg  = "Failed to check username"
+	InvalidRequestMsg       = "Invalid request"
+	UnauthenticatedMsg      = "User not authenticated"
+	RequestCanceledMsg      = "Request canceled"
 )
 
 // ===== Shop Errors =====
@@ -29,14 +61,31 @@ const (
 	ShopRequiredCode = "SHOP_REQUIRED"
 	ShopRequiredMsg  = "X-Shop-Id header is required"
 
+	ShopCreateFailedCode = "SHOP_CREATE_FAILED"
+	ShopCreateFailedMsg  = "Unable to create shop at this time. Please try again later"
+
+	ShopSlugExistsCode = "SHOP_SLUG_EXISTS"
+	ShopSlugExistsMsg  = "Shop slug already exists"
+
 	ShopAccessDeniedCode = "SHOP_ACCESS_DENIED"
 	ShopAccessDeniedMsg  = "You do not have access to this shop"
 
-	ShopNotFoundCode = "SHOP_NOT_FOUND"
-	ShopNotFoundMsg  = "The requested shop was not found"
+	ShopLimitExceededCode  = "SHOP_LIMIT_EXCEEDED"
+	ShopLimitExceededMsg   = "You can only create up to 2 shops"
+	ShopValidateFailedCode = "SHOP_VALIDATE_FAILED"
+	ShopValidateFailedMsg  = "Failed to retrieve shop"
 
-	ShopLimitExceededCode = "SHOP_LIMIT_EXCEEDED"
-	ShopLimitExceededMsg  = ShopLimitExceededCode + ":You can only create up to 2 shops"
+	ShopNotFoundCode = "SHOP_NOT_FOUND"
+	ShopNotFoundMsg  = "Shop not found"
+
+	ShopListFailedCode = "SHOP_LIST_FAILED"
+	ShopListFailedMsg  = "Failed to retrieve shops"
+
+	ShopUpdateFailedCode = "SHOP_UPDATE_FAILED"
+	ShopUpdateFailedMsg  = "Failed to update shop"
+
+	ShopDeleteFailedCode = "SHOP_DELETE_FAILED"
+	ShopDeleteFailedMsg  = "Failed to delete shop"
 )
 
 // ===== Validation Errors =====

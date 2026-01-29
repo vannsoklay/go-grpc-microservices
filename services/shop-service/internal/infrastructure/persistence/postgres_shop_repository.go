@@ -32,7 +32,7 @@ func NewPostgresShopRepository(db *sql.DB, logger *slog.Logger) *PostgresShopRep
 
 const (
 	queryShopByOwnerID = `
-		SELECT id, slug
+		SELECT id, owner_id, name, slug, description, logo, is_active, created_at, updated_at
 		FROM shops
 		WHERE owner_id = $1 AND id = $2 AND is_active = TRUE AND deleted_at IS NULL
 	`

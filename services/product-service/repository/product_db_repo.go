@@ -7,7 +7,6 @@ import (
 	"log/slog"
 
 	pagination "hpkg/constants"
-	errors "hpkg/constants/responses"
 	"productservice/domain"
 )
 
@@ -42,7 +41,7 @@ func (r *PostgresProductRepository) ListByShopID(
 	argPos := 2
 
 	query := `
-		SELECT id, shop_id, owner_id, name, category, price, detail, created_at, updated_at, deleted_at
+		SELECT id, shop_id, owner_id, name, category, price, description, detail, created_at, updated_at, deleted_at
 		FROM products
 		WHERE shop_id = $1
 		  AND deleted_at IS NULL
@@ -111,7 +110,7 @@ func (r *PostgresProductRepository) ListByShopID(
 		var p domain.Product
 		if err := rows.Scan(
 			&p.ID, &p.ShopID, &p.OwnerID,
-			&p.Name, &p.Category, &p.Price, &p.Detail,
+			&p.Name, &p.Category, &p.Price, &p.Description, &p.Detail,
 			&p.CreatedAt, &p.UpdatedAt, &p.DeletedAt,
 		); err != nil {
 			r.logger.ErrorContext(ctx, "failed to scan product row",
@@ -193,6 +192,7 @@ func (r *PostgresProductRepository) GetByID(
 		&p.Name,
 		&p.Category,
 		&p.Price,
+		&p.Description,
 		&p.Detail,
 		&p.CreatedAt,
 		&p.UpdatedAt,
@@ -202,7 +202,7 @@ func (r *PostgresProductRepository) GetByID(
 			r.logger.WarnContext(ctx, "product not found",
 				"productID", id,
 			)
-			return nil, errors.NotFoundServiceError(errors.ErrProductNotFoundMsg)
+			return nil, err
 		}
 		r.logger.ErrorContext(ctx, "failed to scan product",
 			"error", err,
@@ -228,8 +228,9 @@ func (r *PostgresProductRepository) Create(
 		"shopID", req.ShopID,
 		"ownerID", req.OwnerID,
 		"name", req.Name,
-		"category", req.Category,
 		"price", req.Price,
+		"category", req.Description,
+		"detail", req.Detail,
 	)
 
 	row := r.db.QueryRowContext(ctx, `
@@ -237,9 +238,9 @@ func (r *PostgresProductRepository) Create(
 			shop_id,
 			owner_id,
 			name,
+			price,
 			category,
 			description,
-			price,
 			detail
 		)
 		VALUES ($1, $2, $3, $4, $5, $6, $7)
@@ -250,6 +251,7 @@ func (r *PostgresProductRepository) Create(
 			name,
 			category,
 			price,
+			description,
 			detail,
 			created_at,
 			updated_at
@@ -257,9 +259,9 @@ func (r *PostgresProductRepository) Create(
 		req.ShopID,
 		req.OwnerID,
 		req.Name,
-		req.Description,
-		req.Category,
 		req.Price,
+		req.Category,
+		req.Description,
 		req.Detail,
 	)
 
@@ -271,6 +273,7 @@ func (r *PostgresProductRepository) Create(
 		&p.Name,
 		&p.Category,
 		&p.Price,
+		&p.Description,
 		&p.Detail,
 		&p.CreatedAt,
 		&p.UpdatedAt,
@@ -310,7 +313,8 @@ func (r *PostgresProductRepository) Update(
 			name = $2,
 			category = $3,
 			price = $4,
-			detail = $5,
+			description = $5,
+			detail = $6,
 			updated_at = now()
 		WHERE id = $1
 		  AND deleted_at IS NULL
@@ -340,6 +344,7 @@ func (r *PostgresProductRepository) Update(
 		&p.Name,
 		&p.Category,
 		&p.Price,
+		&p.Description,
 		&p.Detail,
 		&p.CreatedAt,
 		&p.UpdatedAt,
@@ -348,7 +353,7 @@ func (r *PostgresProductRepository) Update(
 			r.logger.WarnContext(ctx, "product not found for update",
 				"productID", req.ID,
 			)
-			return nil, errors.NotFoundServiceError(errors.ErrProductNotFoundMsg)
+			return nil, err
 		}
 		r.logger.ErrorContext(ctx, "failed to update product",
 			"error", err,
@@ -390,12 +395,12 @@ func (r *PostgresProductRepository) Delete(
 		return err
 	}
 
-	rows, _ := res.RowsAffected()
+	rows, err := res.RowsAffected()
 	if rows == 0 {
 		r.logger.WarnContext(ctx, "product not found for deletion",
 			"productID", id,
 		)
-		return errors.NotFoundServiceError(errors.ErrProductNotFoundMsg)
+		return err
 	}
 
 	r.logger.InfoContext(ctx, "product deleted successfully",

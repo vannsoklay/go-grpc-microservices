@@ -9,6 +9,7 @@ import (
 	"gateway/grpc"
 	handler "gateway/handlers"
 	mdw "gateway/middleware"
+	errs "hpkg/constants/responses"
 )
 
 func Setup(app *fiber.App, clients *grpc.GRPCClients, redisCache *cache.RedisCache) {
@@ -32,6 +33,10 @@ func Setup(app *fiber.App, clients *grpc.GRPCClients, redisCache *cache.RedisCac
 	RegisterProductRoutes(app, clients, redisCache)
 	// payment route
 	// RegisterPaymentRoutes(app, clients, auth, redisCache, redisCache)
+
+	app.Use(func(c fiber.Ctx) error {
+		return errs.Error(c, fiber.StatusUnauthorized, errs.ErrNotFoundCode, errs.ErrNotFoundMsg)
+	})
 }
 
 func RegisterUserRoutes(
@@ -109,9 +114,13 @@ func RegisterProductRoutes(app *fiber.App, clients *grpc.GRPCClients, redisCache
 	authCache := cache.NewAuthCache(redisCache, 10*time.Minute)
 	shopCache := cache.NewShopCache(redisCache, 10*time.Minute)
 
-	products := app.Group("/api/products")
+	api := app.Group("/api/products")
 
-	products.Get("", mdw.AuthMiddleware(clients, authCache), mdw.ShopMiddleware(clients.Shop, shopCache), h.ListProductsByShop)
+	api.Get("", mdw.AuthMiddleware(clients, authCache), mdw.ShopMiddleware(clients.Shop, shopCache), h.ListProductsByShop)
+	api.Get("/:id", mdw.AuthMiddleware(clients, authCache), mdw.ShopMiddleware(clients.Shop, shopCache), h.GetProductByID)
+	api.Post("", mdw.AuthMiddleware(clients, authCache), mdw.ShopMiddleware(clients.Shop, shopCache), h.CreateProduct)
+	api.Put("/:id", mdw.AuthMiddleware(clients, authCache), mdw.ShopMiddleware(clients.Shop, shopCache), h.UpdateProduct)
+	api.Delete("/:id", mdw.AuthMiddleware(clients, authCache), mdw.ShopMiddleware(clients.Shop, shopCache), h.DeleteProduct)
 }
 
 func RegisterPaymentRoutes(app *fiber.App, clients *grpc.GRPCClients, redisCache *cache.RedisCache) {

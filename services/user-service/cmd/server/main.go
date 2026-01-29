@@ -5,6 +5,7 @@ import (
 	"log/slog"
 	"net"
 	"os"
+	"userservice/internal/repository"
 
 	"userservice/internal/handler"
 	"userservice/internal/service"
@@ -33,7 +34,8 @@ func main() {
 	grpcServer := grpc.NewServer(grpc.UnaryInterceptor(interceptor.UserUnaryServerInterceptor(logger)))
 
 	// dependencies
-	svc := service.NewUserService(db)
+	repo := repository.NewPostgresUserRepository(db, logger)
+	svc := service.NewUserService(repo)
 	h := handler.NewUserHandler(svc)
 
 	// Register service

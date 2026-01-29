@@ -3,11 +3,10 @@ package service
 import (
 	"context"
 	"database/sql"
-	"fmt"
 	"log/slog"
 	"time"
 
-	"hpkg/constants/responses"
+	errors "hpkg/constants/responses"
 	reqCtx "hpkg/grpc"
 
 	"github.com/google/uuid"
@@ -41,9 +40,9 @@ func (s *ShopService) ValidateShop(ctx context.Context, req *shoppb.ValidateShop
 	id, slug, err := s.repo.ValidateShop(ctx, ownerID, req.ShopId)
 	if err != nil {
 		if err == sql.ErrNoRows {
-			return nil, status.Error(codes.NotFound, "shop not found")
+			return nil, status.Errorf(codes.NotFound, "%s:%s", errors.ShopNotFoundCode, errors.ShopNotFoundMsg)
 		}
-		return nil, status.Error(codes.Internal, "failed to retrieve shop")
+		return nil, status.Errorf(codes.Internal, "%s:%s", errors.ShopValidateFailedCode, errors.ShopValidateFailedMsg)
 	}
 
 	return &shoppb.ValidateShopResponse{
@@ -55,7 +54,7 @@ func (s *ShopService) ValidateShop(ctx context.Context, req *shoppb.ValidateShop
 func (s *ShopService) CreateShop(ctx context.Context, req *shoppb.CreateShopRequest) (*shoppb.CreateShopResponse, error) {
 	// Validate required fields
 	if req.Name == "" || req.Slug == "" {
-		return nil, status.Error(codes.InvalidArgument, "name and slug are required")
+		return nil, status.Errorf(codes.InvalidArgument, "%s : %s", errors.ErrInvalidInputCode, errors.ErrInvalidInputMsg)
 	}
 
 	// Get current user ID from context
@@ -71,14 +70,14 @@ func (s *ShopService) CreateShop(ctx context.Context, req *shoppb.CreateShopRequ
 			slog.String("owner_id", ownerID),
 			slog.String("error", err.Error()),
 		)
-		return nil, status.Error(codes.Internal, "failed to create shop")
+		return nil, status.Errorf(codes.Internal, "%s : %s", errors.ShopCreateFailedCode, errors.ShopCreateFailedMsg)
 	}
 
 	if count >= 2 {
 		s.logger.WarnContext(ctx, "user reached maximum allowed shops",
 			slog.String("owner_id", ownerID),
 		)
-		return nil, status.Error(codes.FailedPrecondition, responses.ShopLimitExceededMsg)
+		return nil, status.Errorf(codes.FailedPrecondition, "%s : %s", errors.ShopLimitExceededCode, errors.ShopLimitExceededMsg)
 	}
 
 	// Check slug uniqueness
@@ -87,11 +86,11 @@ func (s *ShopService) CreateShop(ctx context.Context, req *shoppb.CreateShopRequ
 		s.logger.ErrorContext(ctx, "failed to check slug uniqueness",
 			slog.String("error", err.Error()),
 		)
-		return nil, status.Error(codes.Internal, "failed to create shop")
+		return nil, status.Errorf(codes.Internal, "%s : %s", errors.ErrProductServiceCode, errors.ErrProductServiceMsg)
 	}
 	if exists {
 		s.logger.WarnContext(ctx, "slug already exists", slog.String("slug", req.Slug))
-		return nil, status.Error(codes.AlreadyExists, "shop slug already exists")
+		return nil, status.Errorf(codes.AlreadyExists, "%s : %s", errors.ShopSlugExistsCode, errors.ShopSlugExistsMsg)
 	}
 
 	// Create new shop DTO
@@ -108,7 +107,7 @@ func (s *ShopService) CreateShop(ctx context.Context, req *shoppb.CreateShopRequ
 		UpdatedAt:   now,
 	}
 
-	// 6️⃣ Save to repository
+	// Save to repository
 	id, err := s.repo.CreateShop(ctx, shop)
 	if err != nil {
 		s.logger.ErrorContext(ctx, "failed to create shop in repository",
@@ -119,7 +118,7 @@ func (s *ShopService) CreateShop(ctx context.Context, req *shoppb.CreateShopRequ
 		return nil, status.Error(codes.Internal, "failed to create shop")
 	}
 
-	// 7️⃣ Return response
+	// Return response
 	return &shoppb.CreateShopResponse{
 		ShopId:    id,
 		CreatedAt: timestamppb.New(now),
@@ -131,16 +130,22 @@ func (s *ShopService) ListOwnedShops(ctx context.Context, req *shoppb.ListOwnedS
 	if userErr != nil {
 		return nil, userErr
 	}
-	fmt.Printf("ownerID: %v", ownerID)
 
 	shops, err := s.repo.ListByShopOwner(ctx, ownerID)
-	fmt.Printf("shops: %v", shops)
 	if err != nil {
-		return nil, status.Error(codes.Internal, "failed to retrieve shops")
+		return nil, errors.GRPC(
+			codes.Internal,
+			errors.ShopListFailedCode,
+			errors.ShopListFailedMsg,
+		)
 	}
 
 	if len(shops) == 0 {
-		return nil, status.Error(codes.NotFound, "shop not found")
+		return nil, errors.GRPC(
+			codes.NotFound,
+			errors.ShopNotFoundCode,
+			errors.ShopNotFoundMsg,
+		)
 	}
 
 	return toShopsResponse(shops), nil
@@ -165,9 +170,17 @@ func (s *ShopService) UpdateShop(ctx context.Context, req *shoppb.UpdateShopRequ
 	updated, err := s.repo.UpdateShop(ctx, shop)
 	if err != nil {
 		if err == sql.ErrNoRows {
-			return nil, status.Error(codes.NotFound, "shop not found")
+			return nil, errors.GRPC(
+				codes.NotFound,
+				errors.ShopNotFoundCode,
+				errors.ShopNotFoundMsg,
+			)
 		}
-		return nil, status.Error(codes.Internal, "failed to update shop")
+		return nil, errors.GRPC(
+			codes.Internal,
+			errors.ShopUpdateFailedCode,
+			errors.ShopUpdateFailedMsg,
+		)
 	}
 
 	return toShopResponse(updated), nil
@@ -182,11 +195,19 @@ func (s *ShopService) DeleteShop(ctx context.Context, req *shoppb.DeleteShopRequ
 
 	affected, err := s.repo.DeleteByOwnerID(ctx, ownerID, req.ShopId)
 	if err != nil {
-		return nil, status.Error(codes.Internal, "failed to delete shop")
+		return nil, errors.GRPC(
+			codes.Internal,
+			errors.ShopDeleteFailedCode,
+			errors.ShopDeleteFailedMsg,
+		)
 	}
 
 	if affected == 0 {
-		return nil, status.Error(codes.NotFound, "shop not found")
+		return nil, errors.GRPC(
+			codes.NotFound,
+			errors.ShopNotFoundCode,
+			errors.ShopNotFoundMsg,
+		)
 	}
 
 	return &shoppb.DeleteShopResponse{Success: true}, nil

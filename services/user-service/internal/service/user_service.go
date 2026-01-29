@@ -4,170 +4,90 @@ import (
 	"context"
 	"database/sql"
 	"errors"
-	"fmt"
 
-	"time"
-	domain "userservice/internal/domain/entities"
+	errs "hpkg/constants/responses"
+	pkg "hpkg/grpc"
+	proto "userservice/internal/domain/proto"
+	"userservice/internal/repository"
 	"userservice/proto/userpb"
 
 	"github.com/google/uuid"
 	"google.golang.org/grpc/codes"
-	"google.golang.org/grpc/metadata"
-	"google.golang.org/grpc/status"
 	"google.golang.org/protobuf/types/known/timestamppb"
 )
 
 type UserService struct {
-	db *sql.DB
+	repo repository.UserRepository
 }
 
-func NewUserService(db *sql.DB) *UserService {
-	return &UserService{db: db}
+func NewUserService(repo repository.UserRepository) *UserService {
+	return &UserService{repo: repo}
 }
 
-func MustGetUserID(ctx context.Context) (string, error) {
-	md, ok := metadata.FromIncomingContext(ctx)
-	if !ok {
-		return "", status.Error(codes.Unauthenticated, "missing metadata")
-	}
-
-	userIDs := md.Get("x-user-id")
-	fmt.Printf("userIDs %v", userIDs)
-	if len(userIDs) == 0 || userIDs[0] == "" {
-		return "", status.Error(codes.Unauthenticated, "user not authenticated")
-	}
-
-	return userIDs[0], nil
-}
-
-// GetUser retrieves user details by user ID
+// ---------------------------
+// Get user details
+// ---------------------------
 func (s *UserService) GetUserDetail(ctx context.Context) (*userpb.UserDetailResponse, error) {
-	userID, err := MustGetUserID(ctx)
+	userID, err := pkg.MustGetUserID(ctx)
 	if err != nil {
-		return nil, errors.New("invalid user_id format")
+		return nil, errs.GRPC(codes.Unauthenticated, errs.UnauthenticatedCode, errs.UnauthenticatedMsg)
 	}
 
-	query := `
-		SELECT
-			id, name, username, email, bio,
-			twofa_enabled, is_verified, email_verified_at,
-			status, last_login, role_id, created_at, updated_at
-		FROM users
-		WHERE id = $1 AND deleted_at IS NULL
-	`
-
-	user := domain.User{}
-	err = s.db.QueryRowContext(ctx, query, userID).Scan(
-		&user.ID,
-		&user.Name,
-		&user.Username,
-		&user.Email,
-		&user.Bio,
-		&user.TwoFAEnabled,
-		&user.IsVerified,
-		&user.EmailVerifiedAt,
-		&user.Status,
-		&user.LastLogin,
-		&user.RoleID,
-		&user.CreatedAt,
-		&user.UpdatedAt,
-	)
-
-	if err == sql.ErrNoRows {
-		return nil, errors.New("user not found")
-	}
+	user, err := s.repo.GetByID(ctx, userID)
 	if err != nil {
-		return nil, err
+		if errors.Is(err, context.Canceled) {
+			return nil, errs.GRPC(codes.Canceled, errs.RequestCanceledCode, errs.RequestCanceledMsg)
+		}
+		if errors.Is(err, sql.ErrNoRows) {
+			return nil, errs.GRPC(codes.NotFound, errs.UserNotFoundCode, errs.UserNotFoundMsg)
+		}
+		return nil, errs.GRPC(codes.Internal, errs.UserFetchFailedCode, errs.UserFetchFailedMsg)
 	}
 
-	// Convert to proto response
-	response := &userpb.UserDetailResponse{
-		Id:         user.ID.String(),
-		Name:       user.Name,
-		Username:   user.Username,
-		Email:      user.Email,
-		Bio:        stringPtr(user.Bio),
-		IsVerified: user.IsVerified,
-		Status:     user.Status,
-		CreatedAt:  timestamppb.New(user.CreatedAt),
-		UpdatedAt:  timestamppb.New(user.UpdatedAt),
-	}
-
-	if user.EmailVerifiedAt != nil {
-		response.EmailVerifiedAt = timestamppb.New(*user.EmailVerifiedAt)
-	}
-	if user.LastLogin != nil {
-		response.LastLogin = timestamppb.New(*user.LastLogin)
-	}
-	if user.RoleID != nil {
-		response.RoleId = user.RoleID.String()
-	}
-
-	return response, nil
+	return proto.MapUserToProto(user), nil
 }
 
-// UpdateUsername updates user's username
+// ---------------------------
+// Update username
+// ---------------------------
 func (s *UserService) UpdateUsername(ctx context.Context, req *userpb.UpdateUsernameRequest) (*userpb.UpdateUsernameResponse, error) {
 	if req.UserId == "" {
-		return nil, errors.New("user_id is required")
+		return nil, errs.GRPC(codes.InvalidArgument, errs.InvalidRequestCode, errs.InvalidRequestMsg)
 	}
 	if req.NewUsername == "" {
-		return nil, errors.New("new_username is required")
+		return nil, errs.GRPC(codes.InvalidArgument, errs.InvalidRequestCode, errs.InvalidRequestMsg)
 	}
 	if len(req.NewUsername) < 3 || len(req.NewUsername) > 255 {
-		return nil, errors.New("username must be between 3 and 255 characters")
+		return nil, errs.GRPC(codes.InvalidArgument, errs.InvalidRequestCode, errs.InvalidRequestMsg)
 	}
 
-	userID, err := uuid.Parse(req.UserId)
+	userUUID, err := uuid.Parse(req.UserId)
 	if err != nil {
-		return nil, errors.New("invalid user_id format")
+		return nil, errs.GRPC(codes.InvalidArgument, errs.InvalidRequestCode, errs.InvalidRequestMsg)
 	}
 
-	// Check if username already exists
-	var exists bool
-	checkQuery := `SELECT EXISTS(SELECT 1 FROM users WHERE username = $1 AND id != $2 AND deleted_at IS NULL)`
-	err = s.db.QueryRowContext(ctx, checkQuery, req.NewUsername, userID).Scan(&exists)
+	// Check if username exists
+	exists, err := s.repo.IsUsernameExists(ctx, req.NewUsername, userUUID.String())
 	if err != nil {
-		return nil, err
+		return nil, errs.GRPC(codes.Internal, errs.UsernameCheckFailedCode, errs.UsernameCheckFailedMsg)
 	}
 	if exists {
-		return nil, errors.New("username already exists")
+		return nil, errs.GRPC(codes.AlreadyExists, errs.UsernameExistsCode, errs.UsernameExistsMsg)
 	}
 
-	// Update username
-	now := time.Now()
-	updateQuery := `
-		UPDATE users
-		SET username = $1, updated_at = $2
-		WHERE id = $3 AND deleted_at IS NULL
-		RETURNING updated_at
-	`
-
-	var updatedAt time.Time
-	err = s.db.QueryRowContext(ctx, updateQuery, req.NewUsername, now, userID).Scan(&updatedAt)
-
-	if err == sql.ErrNoRows {
-		return nil, errors.New("user not found")
-	}
+	updatedAt, err := s.repo.UpdateUsername(ctx, userUUID.String(), req.NewUsername)
 	if err != nil {
-		return nil, err
+		if errors.Is(err, sql.ErrNoRows) {
+			return nil, errs.GRPC(codes.NotFound, errs.UserNotFoundCode, errs.UserNotFoundMsg)
+		}
+		return nil, errs.GRPC(codes.Internal, errs.UsernameUpdateFailedCode, errs.UsernameUpdateFailedMsg)
 	}
 
-	response := &userpb.UpdateUsernameResponse{
+	return &userpb.UpdateUsernameResponse{
 		Success:     true,
 		Message:     "Username updated successfully",
 		UserId:      req.UserId,
 		NewUsername: req.NewUsername,
 		UpdatedAt:   timestamppb.New(updatedAt),
-	}
-
-	return response, nil
-}
-
-// Helper function to convert *string to string pointer
-func stringPtr(s *string) string {
-	if s == nil {
-		return ""
-	}
-	return *s
+	}, nil
 }

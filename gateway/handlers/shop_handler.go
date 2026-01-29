@@ -2,7 +2,6 @@ package handler
 
 import (
 	"context"
-	"fmt"
 	"gateway/grpc"
 	"shopservice/proto/shoppb"
 
@@ -33,7 +32,6 @@ func (h *ShopHandler) CreateShop(c fiber.Ctx) error {
 	}
 
 	resp, err := h.clients.Shop.CreateShop(ctx, &req)
-	fmt.Printf("err %v", err)
 	if err != nil {
 		return responses.FromError(c, err)
 	}

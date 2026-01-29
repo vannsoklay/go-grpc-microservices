@@ -14,6 +14,11 @@ type HTTPError struct {
 	Message string `json:"message"`
 }
 
+type ErrorPayload struct {
+	Code    string `json:"code"`
+	Message string `json:"message"`
+}
+
 // Error implements [error].
 func (h HTTPError) Error() string {
 	return h.Code
@@ -80,11 +85,6 @@ func ToGRPC(err error) HTTPError {
 		Code:    code,
 		Message: message,
 	}
-}
-
-type ErrorPayload struct {
-	Code    string `json:"code"`
-	Message string `json:"message"`
 }
 
 func extractMessage(errMsg string) ErrorPayload {

@@ -3,15 +3,15 @@ package service
 import (
 	"context"
 	"database/sql"
-	"errors"
 	"fmt"
-	err "hpkg/constants/responses"
+	Err "hpkg/constants/responses"
 	auth "hpkg/grpc/middeware"
 
 	"authservice/internal/domain"
 	"authservice/proto/authpb"
 
 	"golang.org/x/crypto/bcrypt"
+	"google.golang.org/grpc/codes"
 )
 
 type AuthService struct {
@@ -23,19 +23,26 @@ func NewAuthService(db *sql.DB, jwtService *auth.JWTService) *AuthService {
 	return &AuthService{db, jwtService}
 }
 
-func (s *AuthService) Register(ctx context.Context, req *authpb.RegisterReq) (*authpb.RegsiterResp, error) {
-	// Hash password
+func (s *AuthService) Register(
+	ctx context.Context,
+	req *authpb.RegisterReq,
+) (*authpb.RegsiterResp, error) {
+
 	hashedPassword, err := bcrypt.GenerateFromPassword(
 		[]byte(req.Password),
 		bcrypt.DefaultCost,
 	)
 	if err != nil {
-		return nil, fmt.Errorf("failed to hash password: %w", err)
+		return nil, Err.GRPC(
+			codes.Internal,
+			Err.ErrUserCreateFailedCode,
+			Err.ErrUserCreateFailedMsg,
+		)
 	}
 
-	// Insert user into database
 	var userID string
-	err = s.db.QueryRowContext(ctx,
+	err = s.db.QueryRowContext(
+		ctx,
 		`INSERT INTO users (name, username, email, password_hash)
 		 VALUES ($1, $2, $3, $4)
 		 RETURNING id`,
@@ -43,37 +50,40 @@ func (s *AuthService) Register(ctx context.Context, req *authpb.RegisterReq) (*a
 	).Scan(&userID)
 
 	if err != nil {
-		if err == sql.ErrNoRows {
-			return nil, errors.New("failed to create user")
-		}
-		return nil, fmt.Errorf("database error: %w", err)
+		return nil, Err.GRPC(
+			codes.Internal,
+			Err.ErrUserCreateFailedCode,
+			Err.ErrUserCreateFailedMsg,
+		)
 	}
 
-	// Generate tokens
 	accessToken, err := s.jwtService.GenerateAccessToken(userID, "user")
 	if err != nil {
-		return nil, fmt.Errorf("failed to generate access token: %w", err)
+		return nil, Err.GRPC(
+			codes.Internal,
+			Err.TokenGenerateFailedCode,
+			Err.AccessTokenGenerateFailedMsg,
+		)
 	}
 
 	refreshToken, err := s.jwtService.GenerateRefreshToken(userID)
 	if err != nil {
-		return nil, fmt.Errorf("failed to generate refresh token: %w", err)
+		return nil, Err.GRPC(
+			codes.Internal,
+			Err.TokenGenerateFailedCode,
+			Err.RefreshTokenGenerateFailedMsg,
+		)
 	}
 
-	// Build response
-	user := &authpb.User{
-		Name:     req.Name,
-		Username: req.Username,
-		Email:    req.Email,
-	}
-
-	resp := &authpb.RegsiterResp{
+	return &authpb.RegsiterResp{
 		AccessToken:  accessToken,
 		RefreshToken: refreshToken,
-		User:         user,
-	}
-
-	return resp, nil
+		User: &authpb.User{
+			Name:     req.Name,
+			Username: req.Username,
+			Email:    req.Email,
+		},
+	}, nil
 }
 
 func (s *AuthService) Login(
@@ -84,29 +94,40 @@ func (s *AuthService) Login(
 
 	user, err := s.FindUserByEmail(ctx, email)
 	if err != nil {
-		if err == sql.ErrNoRows {
-			return nil, errors.New("invalid credentials")
-		}
-		return nil, fmt.Errorf("database error: %w", err)
+		return nil, Err.GRPC(
+			codes.Unauthenticated,
+			Err.ErrInvalidCredentialsCode,
+			Err.ErrInvalidCredentialsMsg,
+		)
 	}
 
-	// Compare password hash
-	if err := bcrypt.CompareHashAndPassword(
+	if bcrypt.CompareHashAndPassword(
 		[]byte(user.Password),
 		[]byte(password),
-	); err != nil {
-		return nil, errors.New("invalid credentials")
+	) != nil {
+		return nil, Err.GRPC(
+			codes.Unauthenticated,
+			Err.ErrInvalidCredentialsCode,
+			Err.ErrInvalidCredentialsMsg,
+		)
 	}
 
-	// Generate tokens
 	accessToken, err := s.jwtService.GenerateAccessToken(user.ID, "shop_owner")
 	if err != nil {
-		return nil, fmt.Errorf("failed to generate access token: %w", err)
+		return nil, Err.GRPC(
+			codes.Internal,
+			Err.TokenGenerateFailedCode,
+			Err.AccessTokenGenerateFailedMsg,
+		)
 	}
 
 	refreshToken, err := s.jwtService.GenerateRefreshToken(user.ID)
 	if err != nil {
-		return nil, fmt.Errorf("failed to generate refresh token: %w", err)
+		return nil, Err.GRPC(
+			codes.Internal,
+			Err.TokenGenerateFailedCode,
+			Err.RefreshTokenGenerateFailedMsg,
+		)
 	}
 
 	return &authpb.LoginResp{
@@ -122,7 +143,7 @@ func (s *AuthService) Login(
 
 func (s *AuthService) ValidateToken(ctx context.Context, req *authpb.TokenReq) (*authpb.ValidateTokenResp, error) {
 	if req == nil || req.Token == "" {
-		return nil, err.ValidationServiceError(err.ErrTokenInvalidMsg)
+		return nil, Err.GRPC(codes.Unauthenticated, Err.ErrTokenInvalidCode, Err.ErrTokenInvalidMsg)
 	}
 
 	claim, err := s.jwtService.ValidateAccessToken(req.Token)
@@ -200,7 +221,6 @@ func (s *AuthService) FindRoleAndPerms(
 	`
 
 	rows, err := s.db.QueryContext(context.Background(), query, userId)
-	fmt.Printf("data %v", rows)
 	if err != nil {
 		return "", nil, err
 	}
