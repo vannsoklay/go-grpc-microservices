@@ -108,7 +108,7 @@ func FromError(c fiber.Ctx, err error) error {
 
 	// Try gRPC conversion
 	httpErr := ToGRPC(err)
-	return Error(c, httpErr.Status, httpErr.Code)
+	return Error(c, httpErr.Status, httpErr.Code, httpErr.Message)
 }
 
 // Paginated sends a paginated response

@@ -78,7 +78,7 @@ func (s *ShopService) CreateShop(ctx context.Context, req *shoppb.CreateShopRequ
 		s.logger.WarnContext(ctx, "user reached maximum allowed shops",
 			slog.String("owner_id", ownerID),
 		)
-		return nil, status.Error(codes.FailedPrecondition, responses.ShopLimitExceededCode)
+		return nil, status.Error(codes.FailedPrecondition, responses.ShopLimitExceededMsg)
 	}
 
 	// Check slug uniqueness

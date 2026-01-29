@@ -27,14 +27,6 @@ func main() {
 		log.Fatalf("Failed to initialize gRPC clients: %v", err)
 	}
 
-	// conn, err := grpc.NewConn("localhost:50050")
-	// if err != nil {
-	// 	log.Fatal(err)
-	// }
-	// authClient := server.NewAuthClient(
-	// 	authpb.NewAuthServiceClient(conn),
-	// )
-
 	router.Setup(app, clients, redisCache)
 
 	log.Println("API Gateway running on :3000")
