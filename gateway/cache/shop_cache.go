@@ -2,7 +2,6 @@ package cache
 
 import (
 	"context"
-	"fmt"
 	"time"
 )
 
@@ -20,7 +19,6 @@ func (c *ShopCache) key(userID string) string {
 }
 
 func (c *ShopCache) Get(ctx context.Context, userID string) (string, bool) {
-	fmt.Printf("ctx %v", userID)
 	val, err := c.rdb.Get(ctx, c.key(userID))
 	if err != nil {
 		return "", false

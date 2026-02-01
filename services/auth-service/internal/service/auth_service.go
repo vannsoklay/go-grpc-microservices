@@ -143,20 +143,30 @@ func (s *AuthService) Login(
 
 func (s *AuthService) ValidateToken(ctx context.Context, req *authpb.TokenReq) (*authpb.ValidateTokenResp, error) {
 	if req == nil || req.Token == "" {
-		return nil, Err.GRPC(codes.Unauthenticated, Err.ErrTokenInvalidCode, Err.ErrTokenInvalidMsg)
+		return nil, Err.GRPC(codes.Unauthenticated, Err.TokenInvalidCode, Err.TokenInvalidMsg)
 	}
 
 	claim, err := s.jwtService.ValidateAccessToken(req.Token)
 	if err != nil || claim == nil {
-		return nil, err
+		return nil, Err.GRPC(
+			codes.Internal,
+			Err.TokenExpiredCode,
+			Err.TokenExpiredMsg,
+		)
 	}
 
 	role, perms, err := s.FindRoleAndPerms(claim.UserID)
 	if err != nil {
 		if err == sql.ErrNoRows {
-			return nil, err
+			return nil, Err.GRPC(
+				codes.NotFound,
+				Err.UserNotFoundCode,
+				Err.UserRoleNotFoundMsg)
 		}
-		return nil, err
+		return nil, Err.GRPC(
+			codes.Internal,
+			Err.UserRoleFetchFailedCode,
+			Err.UserRoleFetchFailedMsg)
 	}
 
 	return &authpb.ValidateTokenResp{

@@ -9,7 +9,7 @@ type Product struct {
 	Name        string     `db:"name"`
 	Category    string     `db:"category"`
 	Price       float64    `db:"price"`
-	Description string     `db:"description"`
+	Description *string    `db:"description"`
 	Detail      *string    `db:"detail"`
 	CreatedAt   time.Time  `db:"created_at"`
 	UpdatedAt   time.Time  `db:"updated_at"`
@@ -33,4 +33,12 @@ type UpdateProductRequest struct {
 	Price       float64
 	Description string
 	Detail      string
+}
+
+type ProductSummary struct {
+	ID       string  `db:"id"`
+	Name     string  `db:"name"`
+	SKU      string  `db:"sku"`
+	Price    float64 `db:"price"`
+	IsActive bool    `db:"is_active"`
 }

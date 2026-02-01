@@ -7,7 +7,7 @@ import (
 	"log/slog"
 
 	pagination "hpkg/constants"
-	"productservice/domain"
+	"productservice/internal/domain"
 )
 
 type PostgresProductRepository struct {
@@ -31,77 +31,126 @@ func (r *PostgresProductRepository) ListByShopID(
 	sortDesc bool,
 	limit int,
 	cursor string,
-) ([]*domain.Product, string, error) {
+) ([]*domain.Product, string, int64, int64, error) {
 
 	if limit <= 0 || limit > 50 {
 		limit = 20
 	}
 
-	args := []any{shopID}
-	argPos := 2
-
-	query := `
-		SELECT id, shop_id, owner_id, name, category, price, description, detail, created_at, updated_at, deleted_at
+	// -----------------------------------
+	// Base WHERE (shared)
+	// -----------------------------------
+	baseWhere := `
 		FROM products
 		WHERE shop_id = $1
 		  AND deleted_at IS NULL
 	`
 
-	// Search by name
+	args := []any{shopID}
+	argPos := 2
+
+	// Search
 	if search != "" {
-		query += fmt.Sprintf(" AND name ILIKE $%d", argPos)
+		baseWhere += fmt.Sprintf(" AND name ILIKE $%d", argPos)
 		args = append(args, "%"+search+"%")
 		argPos++
 	}
 
-	// Filter by category
+	// Filter
 	if filter != "" {
-		query += fmt.Sprintf(" AND LOWER(category) = LOWER($%d)", argPos)
+		baseWhere += fmt.Sprintf(" AND LOWER(category) = LOWER($%d)", argPos)
 		args = append(args, filter)
 		argPos++
 	}
 
-	// Cursor pagination
+	// -----------------------------------
+	// TOTAL ALL PRODUCTS (no filter)
+	// -----------------------------------
+	var totalAllCount int64
+	if err := r.db.QueryRowContext(
+		ctx,
+		`
+		SELECT COUNT(1)
+		FROM products
+		WHERE shop_id = $1
+		  AND deleted_at IS NULL
+		`,
+		shopID,
+	).Scan(&totalAllCount); err != nil {
+		r.logger.ErrorContext(ctx, "failed to count all products",
+			"error", err,
+			"shopID", shopID,
+		)
+		return nil, "", 0, 0, err
+	}
+
+	// -----------------------------------
+	// TOTAL FILTERED PRODUCTS
+	// -----------------------------------
+	var totalCount int64
+	countQuery := `SELECT COUNT(1) ` + baseWhere
+
+	if err := r.db.QueryRowContext(ctx, countQuery, args...).Scan(&totalCount); err != nil {
+		r.logger.ErrorContext(ctx, "failed to count filtered products",
+			"error", err,
+			"shopID", shopID,
+		)
+		return nil, "", 0, 0, err
+	}
+
+	// -----------------------------------
+	// LIST QUERY (cursor pagination)
+	// -----------------------------------
+	listArgs := append([]any{}, args...)
+	listArgPos := argPos
+
+	listQuery := `
+		SELECT id, shop_id, owner_id, name, category, price,
+		       description, detail, created_at, updated_at, deleted_at
+	` + baseWhere
+
 	if cursor != "" {
 		c, err := pagination.DecodeCursor(cursor)
 		if err != nil {
 			r.logger.ErrorContext(ctx, "failed to decode cursor",
 				"error", err,
 				"cursor", cursor,
-				"shopID", shopID,
 			)
-			return nil, "", err
+			return nil, "", 0, 0, err
 		}
-		query += fmt.Sprintf(" AND (created_at, id) > ($%d, $%d)", argPos, argPos+1)
-		args = append(args, c.CreatedAt, c.ID)
-		argPos += 2
+
+		// forward-only cursor
+		listQuery += fmt.Sprintf(
+			" AND (created_at, id) < ($%d, $%d)",
+			listArgPos,
+			listArgPos+1,
+		)
+		listArgs = append(listArgs, c.CreatedAt, c.ID)
+		listArgPos += 2
 	}
 
 	order := "ASC"
 	if sortDesc {
 		order = "DESC"
 	}
-	query += fmt.Sprintf(" ORDER BY %s %s, id ASC LIMIT $%d", sortColumn, order, argPos)
-	args = append(args, limit+1)
 
-	r.logger.DebugContext(ctx, "executing list query",
-		"shopID", shopID,
-		"search", search,
-		"filter", filter,
-		"sortColumn", sortColumn,
-		"sortDesc", sortDesc,
-		"limit", limit,
+	listQuery += fmt.Sprintf(
+		" ORDER BY %s %s, id %s LIMIT $%d",
+		sortColumn,
+		order,
+		order,
+		listArgPos,
 	)
+	listArgs = append(listArgs, limit+1)
 
-	rows, err := r.db.QueryContext(ctx, query, args...)
+	rows, err := r.db.QueryContext(ctx, listQuery, listArgs...)
 	if err != nil {
 		r.logger.ErrorContext(ctx, "failed to query products",
 			"error", err,
-			"shopID", shopID,
-			"query", query,
-			"args", args,
+			"query", listQuery,
+			"args", listArgs,
 		)
-		return nil, "", err
+		return nil, "", 0, 0, err
 	}
 	defer rows.Close()
 
@@ -110,32 +159,22 @@ func (r *PostgresProductRepository) ListByShopID(
 		var p domain.Product
 		if err := rows.Scan(
 			&p.ID, &p.ShopID, &p.OwnerID,
-			&p.Name, &p.Category, &p.Price, &p.Description, &p.Detail,
+			&p.Name, &p.Category, &p.Price,
+			&p.Description, &p.Detail,
 			&p.CreatedAt, &p.UpdatedAt, &p.DeletedAt,
 		); err != nil {
-			r.logger.ErrorContext(ctx, "failed to scan product row",
-				"error", err,
-				"shopID", shopID,
-			)
-			return nil, "", err
+			return nil, "", 0, 0, err
 		}
 		products = append(products, &p)
 	}
 
 	if err := rows.Err(); err != nil {
-		r.logger.ErrorContext(ctx, "error iterating product rows",
-			"error", err,
-			"shopID", shopID,
-			"productsCount", len(products),
-		)
-		return nil, "", err
+		return nil, "", 0, 0, err
 	}
 
-	r.logger.DebugContext(ctx, "products fetched successfully",
-		"shopID", shopID,
-		"count", len(products),
-	)
-
+	// -----------------------------------
+	// NEXT CURSOR
+	// -----------------------------------
 	var nextCursor string
 	if len(products) > limit {
 		last := products[limit-1]
@@ -144,18 +183,13 @@ func (r *PostgresProductRepository) ListByShopID(
 			ID:        last.ID,
 		})
 		if err != nil {
-			r.logger.ErrorContext(ctx, "failed to encode cursor",
-				"error", err,
-				"productID", last.ID,
-				"shopID", shopID,
-			)
-			return nil, "", err
+			return nil, "", 0, 0, err
 		}
 		nextCursor = c
 		products = products[:limit]
 	}
 
-	return products, nextCursor, nil
+	return products, nextCursor, totalCount, totalAllCount, nil
 }
 
 func (r *PostgresProductRepository) GetByID(

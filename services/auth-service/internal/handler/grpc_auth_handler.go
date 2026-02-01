@@ -2,7 +2,6 @@ package handler
 
 import (
 	"context"
-	"log"
 
 	"authservice/internal/service"
 	"authservice/proto/authpb"
@@ -42,13 +41,11 @@ func (h *AuthHandler) Validate(ctx context.Context, req *authpb.TokenReq) (*auth
 	// Call service to validate token
 	resp, err := h.svc.ValidateToken(ctx, req)
 	if err != nil {
-		log.Printf("service error: %v", err)
 		return nil, err
 	}
 
 	// Validate response
 	if resp == nil {
-		log.Println("service returned nil response")
 		return nil, err
 	}
 

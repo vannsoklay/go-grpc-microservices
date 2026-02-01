@@ -2,7 +2,7 @@ package repository
 
 import (
 	"context"
-	"productservice/domain"
+	"productservice/internal/domain"
 )
 
 type ProductRepository interface {

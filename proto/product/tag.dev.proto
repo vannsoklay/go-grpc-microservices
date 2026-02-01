@@ -1,0 +1,117 @@
+syntax = "proto3";
+
+package product;
+
+option go_package = "proto/v1/tagpb;tagpb";
+
+import "google/protobuf/empty.proto";
+import "product/product.dev.proto";
+
+service TagService {
+  rpc Create(TagCreateRequest) returns (TagResponse);
+  rpc Get(TagGetRequest) returns (TagResponse);
+  rpc GetDetail(TagGetDetailRequest) returns (TagDetailResponse);
+  rpc List(TagListRequest) returns (TagListResponse);
+  rpc Update(TagUpdateRequest) returns (TagResponse);
+  rpc Delete(TagDeleteRequest) returns (google.protobuf.Empty);
+  
+  // Product-specific Tag operations
+  rpc AssignToProduct(TagAssignRequest) returns (TagAssignResponse);
+  rpc RemoveFromProduct(TagRemoveRequest) returns (google.protobuf.Empty);
+  rpc GetByProduct(TagGetByProductRequest) returns (TagGetByProductResponse);
+}
+
+// --- Models ---
+
+message TagStats {
+  Tag tag = 1;
+  int32 product_count = 2;
+}
+
+message TagDetail {
+  Tag tag = 1;
+  repeated product.ProductSummary products = 2;
+  int32 total_products = 3;
+}
+
+// --- Requests/Responses ---
+
+message TagCreateRequest {
+  string shop_id = 1;
+  string name = 2;
+  optional string slug = 3;
+}
+
+message TagGetRequest {
+  string id = 1;
+  string shop_id = 2;
+  bool include_product_count = 3;
+}
+
+message TagGetDetailRequest {
+  string id = 1;
+  string shop_id = 2;
+  int32 page = 3;
+  int32 page_size = 4;
+}
+
+message TagListRequest {
+  string shop_id = 1;
+  optional string search = 2;
+  bool include_product_count = 3;
+  int32 page = 4;
+  int32 page_size = 5;
+}
+
+message TagUpdateRequest {
+  string id = 1;
+  string shop_id = 2;
+  optional string name = 3;
+  optional string slug = 4;
+}
+
+message TagDeleteRequest {
+  string id = 1;
+  string shop_id = 2;
+}
+
+message TagAssignRequest {
+  string product_id = 1;
+  string shop_id = 2;
+  repeated string tag_ids = 3;
+  bool replace_existing = 4;
+}
+
+message TagRemoveRequest {
+  string product_id = 1;
+  string shop_id = 2;
+  repeated string tag_ids = 3;
+}
+
+message TagGetByProductRequest {
+  string product_id = 1;
+  string shop_id = 2;
+}
+
+message TagResponse {
+  TagStats tag = 1;
+}
+
+message TagDetailResponse {
+  TagDetail tag_detail = 1;
+}
+
+message TagListResponse {
+  repeated TagStats tags = 1;
+  int32 total = 2;
+  int32 page = 3;
+  int32 page_size = 4;
+}
+
+message TagAssignResponse {
+  repeated Tag assigned_tags = 1;
+}
+
+message TagGetByProductResponse {
+  repeated Tag tags = 1;
+}

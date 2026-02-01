@@ -8,9 +8,9 @@ import (
 	"net"
 	"os"
 
+	"productservice/internal/repository"
+	service "productservice/internal/service"
 	productpb "productservice/proto/productpb"
-	"productservice/repository"
-	service "productservice/service"
 
 	"google.golang.org/grpc"
 )

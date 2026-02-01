@@ -1,0 +1,148 @@
+syntax = "proto3";
+
+package product;
+
+option go_package = "proto/v1/categorypb;categorypb";
+
+import "google/protobuf/timestamp.proto";
+import "google/protobuf/empty.proto";
+
+service CategoryService {
+  rpc Create(CreateRequest) returns (CreateResponse);
+  rpc Get(GetRequest) returns (GetResponse);
+  rpc List(ListRequest) returns (ListResponse);
+  rpc Update(UpdateRequest) returns (UpdateResponse);
+  rpc Delete(DeleteRequest) returns (google.protobuf.Empty);
+  rpc GetTree(GetTreeRequest) returns (GetTreeResponse);
+  rpc GetWithProducts(GetWithProductsRequest)
+      returns (GetWithProductsResponse);
+}
+
+message Category {
+  string id = 1;
+  string shop_id = 2;
+  string name = 3;
+  string slug = 4;
+  optional string parent_id = 5;
+  optional string description = 6;
+  optional string image_url = 7;
+  int32 display_order = 8;
+  bool is_active = 9;
+  google.protobuf.Timestamp created_at = 10;
+  google.protobuf.Timestamp updated_at = 11;
+  optional google.protobuf.Timestamp deleted_at = 12;
+
+  optional Category parent = 13;
+  repeated Category children = 14;
+  int32 product_count = 15;
+}
+
+message CategoryProductSummary {
+  string id = 1;
+  string name = 2;
+  string sku = 3;
+  double price = 4;
+  int32 stock_quantity = 5;
+  bool is_active = 6;
+  optional string thumbnail_url = 7;
+}
+
+message CategoryWithProducts {
+  Category category = 1;
+  repeated CategoryProductSummary products = 2;
+  int32 total_products = 3;
+}
+
+/* ---------- Requests ---------- */
+
+message CreateCategoryRequest {
+  string shop_id = 1;
+  string name = 2;
+  optional string slug = 3;
+  optional string parent_id = 4;
+  optional string description = 5;
+  optional string image_url = 6;
+  int32 display_order = 7;
+  bool is_active = 8;
+}
+
+message GetCategoryRequest {
+  string id = 1;
+  string shop_id = 2;
+  bool include_parent = 3;
+  bool include_children = 4;
+  bool include_product_count = 5;
+}
+
+message ListCategoriesRequest {
+  string shop_id = 1;
+  optional string parent_id = 2;
+  bool include_inactive = 3;
+  bool include_product_count = 4;
+  int32 page = 5;
+  int32 page_size = 6;
+}
+
+message UpdateCategoryRequest {
+  string id = 1;
+  string shop_id = 2;
+  optional string name = 3;
+  optional string slug = 4;
+  optional string parent_id = 5;
+  optional string description = 6;
+  optional string image_url = 7;
+  optional int32 display_order = 8;
+  optional bool is_active = 9;
+}
+
+message DeleteCategoryRequest {
+  string id = 1;
+  string shop_id = 2;
+}
+
+message GetCategoryTreeRequest {
+  string shop_id = 1;
+  bool include_inactive = 2;
+  bool include_product_count = 3;
+}
+
+message GetCategoryWithProductsRequest {
+  string id = 1;
+  string shop_id = 2;
+  int32 page = 3;
+  int32 page_size = 4;
+}
+
+/* ---------- Responses ---------- */
+
+message CreateCategoryResponse {
+  Category category = 1;
+}
+
+message GetCategoryResponse {
+  Category category = 1;
+}
+
+message UpdateCategoryResponse {
+  Category category = 1;
+}
+
+message ListCategoriesResponse {
+  repeated Category categories = 1;
+  int32 total = 2;
+  int32 page = 3;
+  int32 page_size = 4;
+}
+
+message GetCategoryWithProductsResponse {
+  CategoryWithProducts data = 1;
+}
+
+message CategoryTreeNode {
+  Category category = 1;
+  repeated CategoryTreeNode children = 2;
+}
+
+message GetCategoryTreeResponse {
+  repeated CategoryTreeNode nodes = 1;
+}

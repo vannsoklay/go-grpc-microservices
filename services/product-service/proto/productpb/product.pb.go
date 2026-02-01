@@ -30,7 +30,7 @@ type Product struct {
 	Name          string                  `protobuf:"bytes,4,opt,name=name,proto3" json:"name,omitempty"`
 	Category      string                  `protobuf:"bytes,5,opt,name=category,proto3" json:"category,omitempty"`
 	Price         float64                 `protobuf:"fixed64,6,opt,name=price,proto3" json:"price,omitempty"`
-	Description   string                  `protobuf:"bytes,7,opt,name=description,proto3" json:"description,omitempty"`
+	Description   *wrapperspb.StringValue `protobuf:"bytes,7,opt,name=description,proto3" json:"description,omitempty"`
 	Detail        *wrapperspb.StringValue `protobuf:"bytes,8,opt,name=detail,proto3" json:"detail,omitempty"`
 	CreatedAt     *timestamppb.Timestamp  `protobuf:"bytes,9,opt,name=created_at,json=createdAt,proto3" json:"created_at,omitempty"`
 	UpdatedAt     *timestamppb.Timestamp  `protobuf:"bytes,10,opt,name=updated_at,json=updatedAt,proto3" json:"updated_at,omitempty"`
@@ -103,11 +103,11 @@ func (x *Product) GetPrice() float64 {
 	return 0
 }
 
-func (x *Product) GetDescription() string {
+func (x *Product) GetDescription() *wrapperspb.StringValue {
 	if x != nil {
 		return x.Description
 	}
-	return ""
+	return nil
 }
 
 func (x *Product) GetDetail() *wrapperspb.StringValue {
@@ -643,6 +643,9 @@ type ListProductsByShopResponse struct {
 	state         protoimpl.MessageState  `protogen:"open.v1"`
 	Products      []*Product              `protobuf:"bytes,1,rep,name=products,proto3" json:"products,omitempty"`
 	NextCursor    *wrapperspb.StringValue `protobuf:"bytes,2,opt,name=next_cursor,json=nextCursor,proto3" json:"next_cursor,omitempty"`
+	PageSize      int32                   `protobuf:"varint,3,opt,name=page_size,json=pageSize,proto3" json:"page_size,omitempty"`
+	TotalCount    int32                   `protobuf:"varint,4,opt,name=total_count,json=totalCount,proto3" json:"total_count,omitempty"`
+	TotalAllCount int32                   `protobuf:"varint,5,opt,name=total_all_count,json=totalAllCount,proto3" json:"total_all_count,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -691,18 +694,39 @@ func (x *ListProductsByShopResponse) GetNextCursor() *wrapperspb.StringValue {
 	return nil
 }
 
+func (x *ListProductsByShopResponse) GetPageSize() int32 {
+	if x != nil {
+		return x.PageSize
+	}
+	return 0
+}
+
+func (x *ListProductsByShopResponse) GetTotalCount() int32 {
+	if x != nil {
+		return x.TotalCount
+	}
+	return 0
+}
+
+func (x *ListProductsByShopResponse) GetTotalAllCount() int32 {
+	if x != nil {
+		return x.TotalAllCount
+	}
+	return 0
+}
+
 var File_product_product_proto protoreflect.FileDescriptor
 
 const file_product_product_proto_rawDesc = "" +
 	"\n" +
-	"\x15product/product.proto\x12\aproduct\x1a\x1fgoogle/protobuf/timestamp.proto\x1a\x1egoogle/protobuf/wrappers.proto\"\xc6\x02\n" +
+	"\x15product/product.proto\x12\aproduct\x1a\x1fgoogle/protobuf/timestamp.proto\x1a\x1egoogle/protobuf/wrappers.proto\"\xe4\x02\n" +
 	"\aProduct\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\tR\x02id\x12\x17\n" +
 	"\ashop_id\x18\x02 \x01(\tR\x06shopId\x12\x12\n" +
 	"\x04name\x18\x04 \x01(\tR\x04name\x12\x1a\n" +
 	"\bcategory\x18\x05 \x01(\tR\bcategory\x12\x14\n" +
-	"\x05price\x18\x06 \x01(\x01R\x05price\x12 \n" +
-	"\vdescription\x18\a \x01(\tR\vdescription\x124\n" +
+	"\x05price\x18\x06 \x01(\x01R\x05price\x12>\n" +
+	"\vdescription\x18\a \x01(\v2\x1c.google.protobuf.StringValueR\vdescription\x124\n" +
 	"\x06detail\x18\b \x01(\v2\x1c.google.protobuf.StringValueR\x06detail\x129\n" +
 	"\n" +
 	"created_at\x18\t \x01(\v2\x1a.google.protobuf.TimestampR\tcreatedAt\x129\n" +
@@ -743,11 +767,15 @@ const file_product_product_proto_rawDesc = "" +
 	"\x06cursor\x18\x03 \x01(\tR\x06cursor\x12\x16\n" +
 	"\x06search\x18\x04 \x01(\tR\x06search\x12\x16\n" +
 	"\x06filter\x18\x05 \x01(\tR\x06filter\x12\x12\n" +
-	"\x04sort\x18\x06 \x01(\tR\x04sort\"\x89\x01\n" +
+	"\x04sort\x18\x06 \x01(\tR\x04sort\"\xef\x01\n" +
 	"\x1aListProductsByShopResponse\x12,\n" +
 	"\bproducts\x18\x01 \x03(\v2\x10.product.ProductR\bproducts\x12=\n" +
 	"\vnext_cursor\x18\x02 \x01(\v2\x1c.google.protobuf.StringValueR\n" +
-	"nextCursor2\xaa\x03\n" +
+	"nextCursor\x12\x1b\n" +
+	"\tpage_size\x18\x03 \x01(\x05R\bpageSize\x12\x1f\n" +
+	"\vtotal_count\x18\x04 \x01(\x05R\n" +
+	"totalCount\x12&\n" +
+	"\x0ftotal_all_count\x18\x05 \x01(\x05R\rtotalAllCount2\xaa\x03\n" +
 	"\x0eProductService\x12]\n" +
 	"\x12ListProductsByShop\x12\".product.ListProductsByShopRequest\x1a#.product.ListProductsByShopResponse\x12N\n" +
 	"\rCreateProduct\x12\x1d.product.CreateProductRequest\x1a\x1e.product.CreateProductResponse\x12I\n" +
@@ -784,29 +812,30 @@ var file_product_product_proto_goTypes = []any{
 	(*timestamppb.Timestamp)(nil),      // 12: google.protobuf.Timestamp
 }
 var file_product_product_proto_depIdxs = []int32{
-	11, // 0: product.Product.detail:type_name -> google.protobuf.StringValue
-	12, // 1: product.Product.created_at:type_name -> google.protobuf.Timestamp
-	12, // 2: product.Product.updated_at:type_name -> google.protobuf.Timestamp
-	0,  // 3: product.CreateProductResponse.product:type_name -> product.Product
-	0,  // 4: product.GetProductResponse.product:type_name -> product.Product
-	0,  // 5: product.UpdateProductResponse.product:type_name -> product.Product
-	0,  // 6: product.ListProductsByShopResponse.products:type_name -> product.Product
-	11, // 7: product.ListProductsByShopResponse.next_cursor:type_name -> google.protobuf.StringValue
-	9,  // 8: product.ProductService.ListProductsByShop:input_type -> product.ListProductsByShopRequest
-	1,  // 9: product.ProductService.CreateProduct:input_type -> product.CreateProductRequest
-	3,  // 10: product.ProductService.GetProductByID:input_type -> product.GetProductRequest
-	5,  // 11: product.ProductService.UpdateProduct:input_type -> product.UpdateProductRequest
-	7,  // 12: product.ProductService.DeleteProduct:input_type -> product.DeleteProductRequest
-	10, // 13: product.ProductService.ListProductsByShop:output_type -> product.ListProductsByShopResponse
-	2,  // 14: product.ProductService.CreateProduct:output_type -> product.CreateProductResponse
-	4,  // 15: product.ProductService.GetProductByID:output_type -> product.GetProductResponse
-	6,  // 16: product.ProductService.UpdateProduct:output_type -> product.UpdateProductResponse
-	8,  // 17: product.ProductService.DeleteProduct:output_type -> product.DeleteProductResponse
-	13, // [13:18] is the sub-list for method output_type
-	8,  // [8:13] is the sub-list for method input_type
-	8,  // [8:8] is the sub-list for extension type_name
-	8,  // [8:8] is the sub-list for extension extendee
-	0,  // [0:8] is the sub-list for field type_name
+	11, // 0: product.Product.description:type_name -> google.protobuf.StringValue
+	11, // 1: product.Product.detail:type_name -> google.protobuf.StringValue
+	12, // 2: product.Product.created_at:type_name -> google.protobuf.Timestamp
+	12, // 3: product.Product.updated_at:type_name -> google.protobuf.Timestamp
+	0,  // 4: product.CreateProductResponse.product:type_name -> product.Product
+	0,  // 5: product.GetProductResponse.product:type_name -> product.Product
+	0,  // 6: product.UpdateProductResponse.product:type_name -> product.Product
+	0,  // 7: product.ListProductsByShopResponse.products:type_name -> product.Product
+	11, // 8: product.ListProductsByShopResponse.next_cursor:type_name -> google.protobuf.StringValue
+	9,  // 9: product.ProductService.ListProductsByShop:input_type -> product.ListProductsByShopRequest
+	1,  // 10: product.ProductService.CreateProduct:input_type -> product.CreateProductRequest
+	3,  // 11: product.ProductService.GetProductByID:input_type -> product.GetProductRequest
+	5,  // 12: product.ProductService.UpdateProduct:input_type -> product.UpdateProductRequest
+	7,  // 13: product.ProductService.DeleteProduct:input_type -> product.DeleteProductRequest
+	10, // 14: product.ProductService.ListProductsByShop:output_type -> product.ListProductsByShopResponse
+	2,  // 15: product.ProductService.CreateProduct:output_type -> product.CreateProductResponse
+	4,  // 16: product.ProductService.GetProductByID:output_type -> product.GetProductResponse
+	6,  // 17: product.ProductService.UpdateProduct:output_type -> product.UpdateProductResponse
+	8,  // 18: product.ProductService.DeleteProduct:output_type -> product.DeleteProductResponse
+	14, // [14:19] is the sub-list for method output_type
+	9,  // [9:14] is the sub-list for method input_type
+	9,  // [9:9] is the sub-list for extension type_name
+	9,  // [9:9] is the sub-list for extension extendee
+	0,  // [0:9] is the sub-list for field type_name
 }
 
 func init() { file_product_product_proto_init() }

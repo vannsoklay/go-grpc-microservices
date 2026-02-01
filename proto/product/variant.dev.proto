@@ -1,0 +1,102 @@
+syntax = "proto3";
+
+package product;
+
+option go_package = "proto/v1/variantpb;variantpb";
+
+import "google/protobuf/empty.proto";
+import "google/protobuf/struct.proto";
+import "product/product.dev.proto";
+
+service VariantService {
+  rpc Create(CreateVariantRequest) returns (VariantResponse);
+  rpc BulkCreate(BulkCreateRequest) returns (BulkCreateResponse);
+  rpc Get(GetVariantRequest) returns (VariantResponse);
+  rpc List(ListVariantsRequest) returns (ListVariantsResponse);
+  rpc Update(UpdateVariantRequest) returns (VariantResponse);
+  rpc Delete(DeleteVariantRequest) returns (google.protobuf.Empty);
+  rpc UpdateStock(VariantStockRequest) returns (VariantResponse);
+}
+
+// --- Models ---
+
+message VariantDetail {
+  Variant variant = 1;
+  optional ProductSummary product = 2;
+}
+
+message ProductSummary {
+  string id = 1;
+  string name = 2;
+  string sku = 3;
+  double price = 4;
+  bool is_active = 5;
+}
+
+// --- Requests/Responses ---
+
+message CreateVariantRequest {
+  string product_id = 1;
+  optional string sku = 2;
+  optional string barcode = 3;
+  string name = 4;
+  optional double price = 5;
+  optional double cost_price = 6;
+  optional double compare_at_price = 7;
+  int32 stock_quantity = 8;
+  optional double weight = 9;
+  google.protobuf.Struct attributes = 10;
+  bool is_active = 11;
+}
+
+message BulkCreateRequest {
+  string product_id = 1;
+  repeated CreateVariantRequest variants = 2;
+}
+
+message BulkCreateResponse {
+  repeated Variant variants = 1;
+  int32 created_count = 2;
+}
+
+message GetVariantRequest {
+  string id = 1;
+  bool include_product = 2;
+}
+
+message ListVariantsRequest {
+  string product_id = 1;
+  optional bool is_active = 2;
+  bool include_product = 3;
+}
+
+message ListVariantsResponse {
+  repeated VariantDetail variants = 1;
+  int32 total = 2;
+}
+
+message UpdateVariantRequest {
+  string id = 1;
+  optional string name = 2;
+  optional string sku = 3;
+  optional string barcode = 4;
+  optional double price = 5;
+  optional double cost_price = 6;
+  optional int32 stock_quantity = 7;
+  optional bool is_active = 8;
+  optional google.protobuf.Struct attributes = 9;
+}
+
+message DeleteVariantRequest {
+  string id = 1;
+}
+
+message VariantStockRequest {
+  string variant_id = 1;
+  int32 quantity_change = 2;
+  string reason = 3;
+}
+
+message VariantResponse {
+  VariantDetail variant = 1;
+}

@@ -5,11 +5,11 @@ const (
 	ErrAuthHeaderMissingCode = "AUTH_HEADER_MISSING"
 	ErrAuthHeaderMissingMsg  = "Authorization header is required"
 
-	ErrTokenInvalidCode = "TOKEN_INVALID"
-	ErrTokenInvalidMsg  = "Invalid token"
+	TokenInvalidCode = "TOKEN_INVALID"
+	TokenInvalidMsg  = "Invalid token"
 
-	ErrTokenExpiredCode = "TOKEN_EXPIRED"
-	ErrTokenExpiredMsg  = "Your authentication token has expired. Please log in again"
+	TokenExpiredCode = "TOKEN_EXPIRED"
+	TokenExpiredMsg  = "Your authentication token has expired. Please log in again"
 
 	ErrUnauthorizedCode = "UNAUTHORIZED"
 	ErrUnauthorizedMsg  = "Unauthorized request. Please provide valid credentials"
@@ -39,6 +39,7 @@ const (
 const (
 	UserNotFoundCode         = "USER_NOT_FOUND"
 	UserFetchFailedCode      = "USER_FETCH_FAILED"
+	UserRoleFetchFailedCode  = "USER_ROLE_FETCH_FAILED"
 	UsernameExistsCode       = "USERNAME_EXISTS"
 	UsernameUpdateFailedCode = "USERNAME_UPDATE_FAILED"
 	UsernameCheckFailedCode  = "USERNAME_CHECK_FAILED"
@@ -47,6 +48,8 @@ const (
 	RequestCanceledCode      = "REQUEST_CANCELED"
 
 	UserNotFoundMsg         = "User not found"
+	UserRoleNotFoundMsg     = "User not found or has no assigned role"
+	UserRoleFetchFailedMsg  = "Failed to retrieve user permissions"
 	UserFetchFailedMsg      = "Failed to fetch user"
 	UsernameExistsMsg       = "Username already exists"
 	UsernameUpdateFailedMsg = "Failed to update username"

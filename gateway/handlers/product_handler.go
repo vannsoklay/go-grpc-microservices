@@ -93,18 +93,13 @@ func (h *RequestHandler) ListProductsByShop(c fiber.Ctx) error {
 		return responses.FromGRPC[any](c, err)
 	}
 
-	result := fiber.Map{
-		"products":    resp.Products,
-		"next_cursor": resp.NextCursor,
-	}
-
 	if h.cache != nil {
-		if jsonData, err := json.Marshal(result); err == nil {
+		if jsonData, err := json.Marshal(resp); err == nil {
 			_ = h.cache.Set(ctx, cacheKey, string(jsonData), 30*time.Second)
 		}
 	}
 
-	return responses.Success(c, fiber.StatusOK, result)
+	return responses.Success(c, fiber.StatusOK, resp)
 }
 
 func (h *RequestHandler) GetProductByID(c fiber.Ctx) error {

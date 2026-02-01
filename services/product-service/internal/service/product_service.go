@@ -6,10 +6,10 @@ import (
 
 	pkg "hpkg/grpc"
 
-	"productservice/domain"
-	"productservice/domain/proto"
+	"productservice/internal/domain"
+	"productservice/internal/domain/proto"
+	"productservice/internal/repository"
 	"productservice/proto/productpb"
-	"productservice/repository"
 
 	"google.golang.org/protobuf/types/known/wrapperspb"
 )
@@ -57,13 +57,16 @@ func (s *ProductService) ListProductsByShop(
 		return nil, err
 	}
 
-	products, nextCursor, err := s.repo.ListByShopID(ctx, shopID, req.Search, req.Filter, sortColumn, sortDesc, int(req.Limit), req.Cursor)
+	products, nextCursor, totalCount, totalAllCount, err := s.repo.ListByShopID(ctx, shopID, req.Search, req.Filter, sortColumn, sortDesc, int(req.Limit), req.Cursor)
 	if err != nil {
 		return nil, err
 	}
 
 	resp := &productpb.ListProductsByShopResponse{
-		Products: make([]*productpb.Product, 0),
+		Products:      make([]*productpb.Product, 0),
+		PageSize:      int32(len(products)),
+		TotalCount:    int32(totalCount),
+		TotalAllCount: int32(totalAllCount),
 	}
 
 	for _, p := range products {
@@ -73,7 +76,7 @@ func (s *ProductService) ListProductsByShop(
 	if nextCursor != "" {
 		resp.NextCursor = wrapperspb.String(nextCursor)
 	} else {
-		resp.NextCursor = nil // returns null in JSON/gRPC
+		resp.NextCursor = nil
 	}
 
 	return resp, nil

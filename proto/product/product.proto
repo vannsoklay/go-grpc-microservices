@@ -17,7 +17,7 @@ message Product {
   string name = 4;
   string category = 5;
   double price = 6;
-  string description = 7;
+  google.protobuf.StringValue description = 7;
   google.protobuf.StringValue detail = 8;
   google.protobuf.Timestamp created_at = 9;
   google.protobuf.Timestamp updated_at = 10;
@@ -92,6 +92,9 @@ message DeleteProductResponse {
   message ListProductsByShopResponse {
     repeated Product products = 1;
     google.protobuf.StringValue next_cursor = 2;
+    int32 page_size = 3;
+    int32 total_count = 4;
+    int32 total_all_count = 5;
   }
 
 // =====================

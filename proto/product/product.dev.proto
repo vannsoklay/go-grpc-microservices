@@ -1,0 +1,266 @@
+syntax = "proto3";
+
+package product;
+
+option go_package = "proto/v1/productpb;productpb";
+
+import "google/protobuf/timestamp.proto";
+import "google/protobuf/empty.proto";
+import "google/protobuf/struct.proto";
+
+service ProductService {
+  rpc Create(CreateRequest) returns (ProductResponse);
+  rpc Get(GetRequest) returns (ProductResponse);
+  rpc GetDetail(GetDetailRequest) returns (DetailResponse);
+  rpc List(ListRequest) returns (ListResponse);
+  rpc Update(UpdateRequest) returns (ProductResponse);
+  rpc Delete(DeleteRequest) returns (google.protobuf.Empty);
+  rpc UpdateStock(StockRequest) returns (ProductResponse);
+  rpc BulkUpdateStock(BulkStockRequest) returns (BulkStockResponse);
+}
+
+// --- Core Models ---
+
+message Product {
+  string id = 1;
+  string shop_id = 2;
+  optional string category_id = 3;
+  optional string sku = 4;
+  optional string barcode = 5;
+  string name = 6;
+  optional string description = 7;
+  optional string detail = 8;
+  double price = 9;
+  double cost_price = 10;
+  optional double compare_at_price = 11;
+  int32 stock_quantity = 12;
+  int32 min_stock_level = 13;
+  optional int32 max_stock_level = 14;
+  string unit = 15;
+  optional double weight = 16;
+  string weight_unit = 17;
+  int32 thumbnail_index = 18;
+  bool is_active = 19;
+  bool is_taxable = 20;
+  double tax_rate = 21;
+  bool track_inventory = 22;
+  bool allow_backorder = 23;
+  bool is_featured = 24;
+  int32 sort_order = 25;
+  google.protobuf.Struct metadata = 26;
+  google.protobuf.Timestamp created_at = 27;
+  google.protobuf.Timestamp updated_at = 28;
+  optional google.protobuf.Timestamp deleted_at = 29;
+}
+
+message ProductSummary {
+  string id = 1;
+  string name = 2;
+  optional string sku = 3;
+  double price = 4;
+  bool is_active = 5;
+}
+
+message ProductDetail {
+  Product product = 1;
+  optional CategoryInfo category = 2;
+  repeated Media media = 3;
+  repeated Variant variants = 4;
+  repeated Tag tags = 5;
+  optional ShopInfo shop = 6;
+}
+
+// --- Supporting Models ---
+
+message CategoryInfo {
+  string id = 1;
+  string name = 2;
+  string slug = 3;
+  optional string parent_id = 4;
+  optional CategoryInfo parent = 5;
+}
+
+message ShopInfo {
+  string id = 1;
+  string name = 2;
+  optional string logo_url = 3;
+}
+
+message Media {
+  string id = 1;
+  string product_id = 2;
+  string media_url = 3;
+  string media_type = 4; // "image" or "video"
+  int32 display_order = 5;
+  bool is_thumbnail = 6;
+  optional string alt_text = 7;
+  google.protobuf.Timestamp created_at = 8;
+}
+
+message Variant {
+  string id = 1;
+  string product_id = 2;
+  optional string sku = 3;
+  optional string barcode = 4;
+  string name = 5;
+  optional double price = 6;
+  optional double cost_price = 7;
+  optional double compare_at_price = 8;
+  int32 stock_quantity = 9;
+  optional double weight = 10;
+  google.protobuf.Struct attributes = 11;
+  bool is_active = 12;
+  google.protobuf.Timestamp created_at = 13;
+  google.protobuf.Timestamp updated_at = 14;
+}
+
+message Tag {
+  string id = 1;
+  string shop_id = 2;
+  string name = 3;
+  string slug = 4;
+  google.protobuf.Timestamp created_at = 5;
+}
+
+// --- Request/Response Messages ---
+
+message CreateRequest {
+  string shop_id = 1;
+  optional string category_id = 2;
+  optional string sku = 3;
+  optional string barcode = 4;
+  string name = 5;
+  optional string description = 6;
+  optional string detail = 7;
+  double price = 8;
+  optional double cost_price = 9;
+  optional double compare_at_price = 10;
+  int32 stock_quantity = 11;
+  optional int32 min_stock_level = 12;
+  optional int32 max_stock_level = 13;
+  optional string unit = 14;
+  optional double weight = 15;
+  optional string weight_unit = 16;
+  bool is_active = 17;
+  bool is_taxable = 18;
+  optional double tax_rate = 19;
+  bool track_inventory = 20;
+  bool allow_backorder = 21;
+  bool is_featured = 22;
+  repeated MediaRequest media = 23;
+  repeated string tag_ids = 24;
+  google.protobuf.Struct metadata = 25;
+}
+
+message MediaRequest {
+  string media_url = 1;
+  string media_type = 2;
+  int32 display_order = 3;
+  bool is_thumbnail = 4;
+  optional string alt_text = 5;
+}
+
+message GetRequest {
+  string id = 1;
+  string shop_id = 2;
+}
+
+message GetDetailRequest {
+  string id = 1;
+  string shop_id = 2;
+  bool include_category = 3;
+  bool include_category_parent = 4;
+  bool include_media = 5;
+  bool include_variants = 6;
+  bool include_tags = 7;
+  bool include_shop = 8;
+}
+
+message ListRequest {
+  string shop_id = 1;
+  optional string category_id = 2;
+  optional string search = 3;
+  optional bool is_active = 4;
+  optional bool is_featured = 5;
+  repeated string tag_ids = 6;
+  optional double min_price = 7;
+  optional double max_price = 8;
+  bool low_stock_only = 9;
+  string sort_by = 10;
+  string sort_order = 11;
+  int32 page = 12;
+  int32 page_size = 13;
+  bool include_category = 14;
+  bool include_media = 15;
+  bool include_tags = 16;
+}
+
+message UpdateRequest {
+  string id = 1;
+  string shop_id = 2;
+  optional string category_id = 3;
+  optional string sku = 4;
+  optional string barcode = 5;
+  optional string name = 6;
+  optional string description = 7;
+  optional string detail = 8;
+  optional double price = 9;
+  optional double cost_price = 10;
+  optional double compare_at_price = 11;
+  optional int32 min_stock_level = 12;
+  optional int32 max_stock_level = 13;
+  optional bool is_active = 14;
+  optional bool is_featured = 15;
+  optional google.protobuf.Struct metadata = 16;
+}
+
+message DeleteRequest {
+  string id = 1;
+  string shop_id = 2;
+  bool soft_delete = 3;
+}
+
+message StockRequest {
+  string product_id = 1;
+  string shop_id = 2;
+  int32 quantity_change = 3;
+  string reason = 4;
+}
+
+message BulkStockRequest {
+  string shop_id = 1;
+  repeated StockUpdate updates = 2;
+}
+
+message StockUpdate {
+  string product_id = 1;
+  int32 quantity_change = 2;
+  string reason = 3;
+}
+
+message ProductResponse {
+  ProductDetail product = 1;
+}
+
+message DetailResponse {
+  ProductDetail product = 1;
+}
+
+message ListResponse {
+  repeated ProductDetail products = 1;
+  int32 total = 2;
+  int32 page = 3;
+  int32 page_size = 4;
+}
+
+message BulkStockResponse {
+  repeated ProductDetail products = 1;
+  repeated StockError errors = 2;
+  int32 success_count = 3;
+  int32 error_count = 4;
+}
+
+message StockError {
+  string product_id = 1;
+  string error_message = 2;
+}
